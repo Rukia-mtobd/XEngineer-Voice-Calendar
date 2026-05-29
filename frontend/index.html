@@ -243,7 +243,7 @@
             <section class="card">
                 <div class="card-title">语音操作</div>
                 <div class="voice-section">
-                    <button type="button" class="btn-voice">按住说话</button>
+                    <button type="button" id="btn-voice" class="btn-voice">按住说话</button>
                     <p class="voice-hint">按住按钮开始录音，松开后自动识别</p>
                 </div>
             </section>
@@ -304,6 +304,100 @@
             } catch (err) {
                 appendLog(err.message || String(err), true);
             }
+        });
+
+        // 语音录制（仅前端本地暂存，不上传、不识别）
+        const voiceBtn = document.getElementById('btn-voice');
+        let mediaRecorder = null;
+        let mediaStream = null;
+        let audioChunks = [];
+        let recordedAudioBlob = null;
+        let isRecording = false;
+        let pendingStop = false;
+
+        function cleanupMediaStream() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach((track) => track.stop());
+                mediaStream = null;
+            }
+        }
+
+        async function startRecording() {
+            if (isRecording) {
+                return;
+            }
+
+            pendingStop = false;
+
+            if (!navigator.mediaDevices || typeof MediaRecorder === 'undefined') {
+                appendLog('当前环境不支持录音功能', true);
+                return;
+            }
+
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioChunks = [];
+                mediaRecorder = new MediaRecorder(mediaStream);
+
+                mediaRecorder.addEventListener('dataavailable', (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                });
+
+                mediaRecorder.addEventListener('stop', () => {
+                    recordedAudioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                    cleanupMediaStream();
+                    isRecording = false;
+                    pendingStop = false;
+                    mediaRecorder = null;
+                    appendLog('录音结束');
+                });
+
+                mediaRecorder.start();
+                isRecording = true;
+                appendLog('开始录音');
+
+                if (pendingStop) {
+                    stopRecording();
+                }
+            } catch (err) {
+                cleanupMediaStream();
+                isRecording = false;
+                mediaRecorder = null;
+
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    appendLog('无法访问麦克风，请检查权限设置', true);
+                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                    appendLog('未检测到可用麦克风设备', true);
+                } else {
+                    appendLog('麦克风启动失败：' + (err.message || String(err)), true);
+                }
+            }
+        }
+
+        function stopRecording() {
+            if (!isRecording || !mediaRecorder) {
+                pendingStop = true;
+                return;
+            }
+
+            if (mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+        }
+
+        voiceBtn.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+            startRecording();
+        });
+
+        voiceBtn.addEventListener('mouseup', () => {
+            stopRecording();
+        });
+
+        voiceBtn.addEventListener('mouseleave', () => {
+            stopRecording();
         });
     </script>
 </body>

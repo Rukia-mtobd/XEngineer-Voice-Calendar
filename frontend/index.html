@@ -207,7 +207,172 @@
         }
 
         .schedule-area {
+            height: 180px;
+            max-height: 180px;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
+            padding: 0;
+            border: none;
+            background: transparent;
+        }
+
+        .schedule-calendar {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-radius: 8px;
+            color: #ffffff;
+        }
+
+        .calendar-date {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .calendar-day {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .calendar-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .calendar-month {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .calendar-weekday {
+            font-size: 11px;
+            opacity: 0.85;
+        }
+
+        .calendar-badge {
+            font-size: 11px;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+
+        .schedule-list {
+            flex: 1;
+            min-height: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding-right: 2px;
+            scrollbar-width: thin;
+            scrollbar-color: #c5d0db transparent;
+        }
+
+        .schedule-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .schedule-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .schedule-list::-webkit-scrollbar-thumb {
+            background: #c5d0db;
+            border-radius: 3px;
+        }
+
+        .schedule-list::-webkit-scrollbar-thumb:hover {
+            background: #aab8c4;
+        }
+
+        .schedule-item {
+            display: flex;
+            gap: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #ffffff;
+            border: 1px solid #e8edf2;
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+            transition: box-shadow 0.15s ease;
+        }
+
+        .schedule-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .schedule-item:nth-child(2) {
+            border-left-color: #10b981;
+        }
+
+        .schedule-item:nth-child(3) {
+            border-left-color: #f59e0b;
+        }
+
+        .schedule-item:nth-child(4) {
+            border-left-color: #8b5cf6;
+        }
+
+        .schedule-item:nth-child(5) {
+            border-left-color: #ec4899;
+        }
+
+        .schedule-time-block {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 44px;
+            padding-top: 2px;
+        }
+
+        .schedule-time {
+            font-size: 13px;
+            font-weight: 700;
+            color: #2563eb;
+            line-height: 1.2;
+        }
+
+        .schedule-item:nth-child(2) .schedule-time {
+            color: #059669;
+        }
+
+        .schedule-item:nth-child(3) .schedule-time {
+            color: #d97706;
+        }
+
+        .schedule-item:nth-child(4) .schedule-time {
+            color: #7c3aed;
+        }
+
+        .schedule-item:nth-child(5) .schedule-time {
+            color: #db2777;
+        }
+
+        .schedule-duration {
+            font-size: 10px;
+            color: #aab8c4;
+            margin-top: 2px;
+        }
+
+        .schedule-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .schedule-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a2b3c;
+            margin-bottom: 4px;
+            line-height: 1.3;
         }
 
         .log-entry {
@@ -227,38 +392,6 @@
             font-size: 12px;
             text-align: center;
             padding-top: 40px;
-        }
-
-        .schedule-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            background: #ffffff;
-            border: 1px solid #e8edf2;
-            border-radius: 6px;
-        }
-
-        .schedule-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .schedule-time {
-            flex-shrink: 0;
-            font-size: 12px;
-            font-weight: 600;
-            color: #3b82f6;
-            min-width: 48px;
-        }
-
-        .schedule-text {
-            font-size: 13px;
-            color: #4a5f73;
-        }
-
-        .schedule-placeholder .schedule-item {
-            opacity: 0.45;
         }
     </style>
 </head>
@@ -300,12 +433,69 @@
 
                 <section class="card">
                     <div class="card-title">日程列表</div>
-                    <div class="schedule-area schedule-placeholder">
-                        <div class="schedule-item">
-                            <span class="schedule-time">09:00</span>
-                            <span class="schedule-text">示例日程（占位）</span>
+                    <div class="schedule-area">
+                        <div class="schedule-calendar">
+                            <div class="calendar-date">
+                                <span class="calendar-day">29</span>
+                                <div class="calendar-meta">
+                                    <span class="calendar-month">2026 年 5 月</span>
+                                    <span class="calendar-weekday">星期四</span>
+                                </div>
+                            </div>
+                            <span class="calendar-badge">今日 5 项日程</span>
                         </div>
-                        <p class="empty-hint" style="padding-top: 16px;">日历日程将在此展示</p>
+                        <div class="schedule-list">
+                            <article class="schedule-item">
+                                <div class="schedule-time-block">
+                                    <span class="schedule-time">09:00</span>
+                                    <span class="schedule-duration">1h</span>
+                                </div>
+                                <div class="schedule-body">
+                                    <h3 class="schedule-title">团队晨会</h3>
+                                    <p class="schedule-note">讨论本周开发进度与任务分配</p>
+                                </div>
+                            </article>
+                            <article class="schedule-item">
+                                <div class="schedule-time-block">
+                                    <span class="schedule-time">11:30</span>
+                                    <span class="schedule-duration">30m</span>
+                                </div>
+                                <div class="schedule-body">
+                                    <h3 class="schedule-title">产品需求评审</h3>
+                                    <p class="schedule-note">确认语音日历下一版本功能范围</p>
+                                </div>
+                            </article>
+                            <article class="schedule-item">
+                                <div class="schedule-time-block">
+                                    <span class="schedule-time">14:00</span>
+                                    <span class="schedule-duration">2h</span>
+                                </div>
+                                <div class="schedule-body">
+                                    <h3 class="schedule-title">代码开发</h3>
+                                    <p class="schedule-note">实现语音转日程与本地存储模块</p>
+                                </div>
+                            </article>
+                            <article class="schedule-item">
+                                <div class="schedule-time-block">
+                                    <span class="schedule-time">16:30</span>
+                                    <span class="schedule-duration">45m</span>
+                                </div>
+                                <div class="schedule-body">
+                                    <h3 class="schedule-title">技术分享</h3>
+                                    <p class="schedule-note">Wails 桌面应用开发实践经验交流</p>
+                                </div>
+                            </article>
+                            <article class="schedule-item">
+                                <div class="schedule-time-block">
+                                    <span class="schedule-time">18:00</span>
+                                    <span class="schedule-duration">1h</span>
+                                </div>
+                                <div class="schedule-body">
+                                    <h3 class="schedule-title">健身</h3>
+                                    <p class="schedule-note">下班后有氧运动，保持作息规律</p>
+                                </div>
+                            </article>
+                        </div>
                     </div>
                 </section>
             </div>

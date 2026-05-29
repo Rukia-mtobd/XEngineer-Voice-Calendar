@@ -5,3 +5,7 @@
 export function Placeholder() {
   return window['go']['main']['App']['Placeholder']();
 }
+
+export function SaveApiKey(arg1) {
+  return window['go']['main']['App']['SaveApiKey'](arg1);
+}

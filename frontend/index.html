@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XEngineer-Voice-Calendar</title>
+    <title>语音日历工具</title>
     <style>
         * {
             margin: 0;
@@ -15,31 +15,260 @@
             width: 100%;
             height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #ffffff;
-            color: #333333;
+            background: linear-gradient(160deg, #f0f4f8 0%, #e8edf2 100%);
+            color: #2c3e50;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
-        #app {
+        .app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            padding: 24px 32px;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a2b3c;
+            letter-spacing: 0.5px;
+        }
+
+        .header p {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #8899a6;
+        }
+
+        .main {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+            max-width: 720px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #dde3ea;
+            border-radius: 10px;
+            padding: 16px 20px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5f73;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eef2f6;
+        }
+
+        /* 配置区域 */
+        .config-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .config-row label {
+            flex-shrink: 0;
+            font-size: 13px;
+            color: #5a6d7e;
+            white-space: nowrap;
+        }
+
+        .config-row input {
+            flex: 1;
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid #cdd6df;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #2c3e50;
+            background: #fafbfc;
+            outline: none;
+        }
+
+        .config-row input::placeholder {
+            color: #aab8c4;
+        }
+
+        .btn {
+            flex-shrink: 0;
+            height: 36px;
+            padding: 0 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: default;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: #ffffff;
+        }
+
+        /* 语音操作区域 */
+        .voice-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0 12px;
+        }
+
+        .btn-voice {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #3b82f6;
+            background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 100%);
+            color: #2563eb;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: default;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 100%;
-            height: 100%;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
         }
 
-        .placeholder {
+        .voice-hint {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #8899a6;
+        }
+
+        /* 下方双栏：日志 + 日程 */
+        .content-row {
+            display: flex;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .content-row .card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            padding-bottom: 12px;
+        }
+
+        .log-area,
+        .schedule-area {
+            flex: 1;
+            min-height: 140px;
+            border: 1px dashed #d0d9e2;
+            border-radius: 6px;
+            background: #f8fafc;
+            padding: 12px;
+            overflow: hidden;
+        }
+
+        .empty-hint {
+            color: #aab8c4;
+            font-size: 12px;
             text-align: center;
-            color: #999999;
-            font-size: 14px;
+            padding-top: 40px;
+        }
+
+        .schedule-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #ffffff;
+            border: 1px solid #e8edf2;
+            border-radius: 6px;
+        }
+
+        .schedule-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .schedule-time {
+            flex-shrink: 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #3b82f6;
+            min-width: 48px;
+        }
+
+        .schedule-text {
+            font-size: 13px;
+            color: #4a5f73;
+        }
+
+        .schedule-placeholder .schedule-item {
+            opacity: 0.45;
         }
     </style>
 </head>
 <body>
-    <div id="app">
-        <div class="placeholder">
-            <p>XEngineer-Voice-Calendar</p>
-            <p>空白模板 — 后续功能在此区域开发</p>
-        </div>
+    <div class="app">
+        <header class="header">
+            <h1>语音日历工具</h1>
+            <p>语音输入 · 智能识别 · 日程管理</p>
+        </header>
+
+        <main class="main">
+            <!-- 配置区域 -->
+            <section class="card">
+                <div class="card-title">配置</div>
+                <div class="config-row">
+                    <label for="api-key">阿里云 API Key</label>
+                    <input type="password" id="api-key" name="api-key" placeholder="请输入阿里云 API Key">
+                    <button type="button" class="btn btn-primary">保存配置</button>
+                </div>
+            </section>
+
+            <!-- 语音操作区域 -->
+            <section class="card">
+                <div class="card-title">语音操作</div>
+                <div class="voice-section">
+                    <button type="button" class="btn-voice">按住说话</button>
+                    <p class="voice-hint">按住按钮开始录音，松开后自动识别</p>
+                </div>
+            </section>
+
+            <!-- 状态日志 + 日程列表 -->
+            <div class="content-row">
+                <section class="card">
+                    <div class="card-title">状态日志</div>
+                    <div class="log-area">
+                        <p class="empty-hint">识别结果与运行状态将在此显示</p>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="card-title">日程列表</div>
+                    <div class="schedule-area schedule-placeholder">
+                        <div class="schedule-item">
+                            <span class="schedule-time">09:00</span>
+                            <span class="schedule-text">示例日程（占位）</span>
+                        </div>
+                        <p class="empty-hint" style="padding-top: 16px;">日历日程将在此展示</p>
+                    </div>
+                </section>
+            </div>
+        </main>
     </div>
 </body>
 </html>

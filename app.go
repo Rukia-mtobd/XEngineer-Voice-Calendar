@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+
+	"xengineer-voice-calendar/internal/config"
 )
 
 // App 前后端交互载体，后续功能方法在此扩展。
@@ -23,7 +25,22 @@ func (a *App) startup(ctx context.Context) {
 // Placeholder 预留的前后端通信占位方法，暂无业务逻辑。
 func (a *App) Placeholder() {}
 
-// SaveApiKey 接收前端传入的 API Key，当前仅打印日志。
+// SaveApiKey 接收前端传入的 API Key 并保存到本地 config.json。
 func (a *App) SaveApiKey(key string) {
+	if err := config.SaveApiKey(key); err != nil {
+		fmt.Println("SaveApiKey error:", err)
+		return
+	}
 	fmt.Println("SaveApiKey called, key length:", len(key))
+}
+
+// LoadApiKey 从本地 config.json 读取 API Key。
+func (a *App) LoadApiKey() string {
+	key, err := config.LoadApiKey()
+	if err != nil {
+		fmt.Println("LoadApiKey error:", err)
+		return ""
+	}
+	fmt.Println("LoadApiKey called, key length:", len(key))
+	return key
 }

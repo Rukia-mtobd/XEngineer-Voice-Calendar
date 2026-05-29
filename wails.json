@@ -1,0 +1,20 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "语音日历",
+  "outputfilename": "VoiceCalendar",
+  "frontend:install": "",
+  "frontend:build": "",
+  "frontend:dev:watcher": "",
+  "frontend:dev:serverUrl": "",
+  "author": {
+    "name": "XEngineer",
+    "email": ""
+  },
+  "info": {
+    "companyName": "XEngineer",
+    "productName": "语音日历",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright © 2026",
+    "comments": "语音驱动的本地日程管理工具"
+  }
+}

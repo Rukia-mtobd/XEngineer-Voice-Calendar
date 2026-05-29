@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>语音日历</title>
+  <style>
+    :root {
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #dc2626;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #0ea5e9;
+      --shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(135deg, #eef2ff 0%, var(--bg) 50%, #f0fdf4 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .app { max-width: 1080px; margin: 0 auto; padding: 24px; }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    header h1 { font-size: 1.6rem; font-weight: 700; }
+    header p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+    .grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 20px;
+    }
+    .card h2 {
+      font-size: 1rem; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .config-row { display: flex; gap: 10px; margin-bottom: 8px; }
+    input[type="text"], input[type="password"], input[type="datetime-local"] {
+      flex: 1; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 10px; font-size: 0.9rem; outline: none;
+    }
+    input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+    button {
+      border: none; border-radius: 10px; padding: 10px 16px;
+      font-size: 0.9rem; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #f1f5f9; color: var(--text); }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-danger { background: #fee2e2; color: var(--danger); }
+    .btn-danger:hover { background: #fecaca; }
+    .btn-record {
+      width: 100%; padding: 16px; font-size: 1rem; font-weight: 600;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff; margin-top: 12px;
+    }
+    .btn-record.recording {
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+      50% { box-shadow: 0 0 0 12px rgba(239,68,68,0); }
+    }
+    .status { font-size: 0.85rem; color: var(--muted); margin-top: 8px; min-height: 20px; }
+    .status.error { color: var(--danger); }
+    .status.ok { color: #16a34a; }
+    .calendar-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .calendar-header button { padding: 6px 12px; }
+    .calendar-grid {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+      text-align: center; font-size: 0.85rem;
+    }
+    .calendar-grid .dow { color: var(--muted); font-weight: 600; padding: 6px 0; }
+    .day {
+      aspect-ratio: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      border-radius: 10px; cursor: pointer; position: relative;
+      border: 1px solid transparent;
+    }
+    .day:hover { background: #f8fafc; }
+    .day.other { color: #cbd5e1; }
+    .day.today { border-color: var(--primary); font-weight: 700; color: var(--primary); }
+    .day.selected { background: var(--primary); color: #fff; }
+    .day .dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--accent); margin-top: 2px;
+    }
+    .day.selected .dot { background: #fff; }
+    .event-list { list-style: none; max-height: 420px; overflow-y: auto; }
+    .event-item {
+      padding: 12px; border: 1px solid var(--border); border-radius: 12px;
+      margin-bottom: 10px;
+    }
+    .event-item h3 { font-size: 0.95rem; margin-bottom: 4px; }
+    .event-item time { font-size: 0.8rem; color: var(--muted); }
+    .event-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .event-actions button { padding: 6px 10px; font-size: 0.8rem; }
+    .empty { text-align: center; color: var(--muted); padding: 32px 0; font-size: 0.9rem; }
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(15,23,42,0.45); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #fff; border-radius: 16px; padding: 28px;
+      max-width: 400px; width: 90%; text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .modal h3 { font-size: 1.2rem; margin-bottom: 8px; }
+    .modal p { color: var(--muted); margin-bottom: 20px; }
+    .recognition-box {
+      background: #f8fafc; border-radius: 10px; padding: 12px;
+      font-size: 0.9rem; margin-top: 10px; min-height: 48px;
+      color: var(--text); word-break: break-all;
+    }
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>语音日历</h1>
+        <p>说话即可创建日程，本地存储，到期自动提醒</p>
+      </div>
+    </header>
+
+    <div class="card" style="margin-bottom: 20px;">
+      <h2>🔑 API 密钥配置</h2>
+      <div class="config-row">
+        <input type="password" id="apiKey" placeholder="请输入阿里云百炼 DashScope API Key" />
+        <button class="btn-primary" id="saveKeyBtn">保存</button>
+      </div>
+      <div class="status" id="keyStatus"></div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="card" style="margin-bottom: 20px;">
+          <h2>🎙️ 语音创建日程</h2>
+          <p style="font-size:0.85rem;color:var(--muted);margin-bottom:8px;">
+            示例：「明天下午3点开会」「周五上午10点体检」
+          </p>
+          <button class="btn-record" id="recordBtn">按住说话</button>
+          <div class="recognition-box" id="recognitionText">识别结果将显示在这里…</div>
+          <div class="status" id="voiceStatus"></div>
+        </div>
+
+        <div class="card">
+          <div class="calendar-header">
+            <button class="btn-secondary" id="prevMonth">◀</button>
+            <strong id="monthLabel"></strong>
+            <button class="btn-secondary" id="nextMonth">▶</button>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📋 <span id="listDateLabel">今日日程</span></h2>
+        <ul class="event-list" id="eventList"></ul>
+        <div class="form-group" style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+          <label>手动添加</label>
+          <input type="text" id="manualTitle" placeholder="日程标题" style="width:100%;margin-bottom:8px;" />
+          <input type="datetime-local" id="manualTime" style="width:100%;margin-bottom:8px;" />
+          <button class="btn-primary" id="addManualBtn" style="width:100%;">添加日程</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="reminderModal">
+    <div class="modal">
+      <h3>⏰ 日程提醒</h3>
+      <p id="reminderText"></p>
+      <button class="btn-primary" id="dismissReminder">知道了</button>
+    </div>
+  </div>
+
+  <script src="/wails/runtime.js"></script>
+  <script>
+    const App = () => window.go?.main?.App;
+
+    let current = new Date();
+    let selectedDate = new Date();
+    let allEvents = [];
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+
+    const $ = (id) => document.getElementById(id);
+
+    function setStatus(el, msg, type = '') {
+      el.textContent = msg;
+      el.className = 'status ' + type;
+    }
+
+    function formatDate(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function formatDateTime(iso) {
+      const d = new Date(iso);
+      return d.toLocaleString('zh-CN', {
+        month: 'numeric', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', weekday: 'short'
+      });
+    }
+
+    function toRFC3339(localDatetime) {
+      const d = new Date(localDatetime);
+      return d.toISOString();
+    }
+
+    async function loadAPIKey() {
+      try {
+        const key = await App().GetAPIKey();
+        if (key) $('apiKey').value = key;
+      } catch (e) { console.error(e); }
+    }
+
+    $('saveKeyBtn').addEventListener('click', async () => {
+      const key = $('apiKey').value.trim();
+      if (!key) { setStatus($('keyStatus'), '请输入 API Key', 'error'); return; }
+      try {
+        await App().SaveAPIKey(key);
+        setStatus($('keyStatus'), 'API Key 已保存', 'ok');
+      } catch (e) {
+        setStatus($('keyStatus'), e.message || String(e), 'error');
+      }
+    });
+
+    async function refreshEvents() {
+      try {
+        allEvents = await App().ListEvents() || [];
+        renderCalendar();
+        renderEventList();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function eventsOnDate(dateStr) {
+      return allEvents.filter(e => e.scheduledAt.startsWith(dateStr));
+    }
+
+    function renderCalendar() {
+      const year = current.getFullYear();
+      const month = current.getMonth();
+      $('monthLabel').textContent = `${year}年${month + 1}月`;
+
+      const first = new Date(year, month, 1);
+      const startDay = first.getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const prevDays = new Date(year, month, 0).getDate();
+
+      const grid = $('calendarGrid');
+      grid.innerHTML = '';
+      ['日','一','二','三','四','五','六'].forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'dow';
+        el.textContent = d;
+        grid.appendChild(el);
+      });
+
+      const todayStr = formatDate(new Date());
+      const selectedStr = formatDate(selectedDate);
+
+      for (let i = startDay - 1; i >= 0; i--) {
+        const day = prevDays - i;
+        const cell = document.createElement('div');
+        cell.className = 'day other';
+        cell.textContent = day;
+        grid.appendChild(cell);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = formatDate(new Date(year, month, d));
+        const cell = document.createElement('div');
+        cell.className = 'day';
+        if (dateStr === todayStr) cell.classList.add('today');
+        if (dateStr === selectedStr) cell.classList.add('selected');
+        cell.innerHTML = `<span>${d}</span>`;
+        if (eventsOnDate(dateStr).length > 0) {
+          cell.innerHTML += '<span class="dot"></span>';
+        }
+        cell.addEventListener('click', () => {
+          selectedDate = new Date(year, month, d);
+          renderCalendar();
+          renderEventList();
+        });
+        grid.appendChild(cell);
+      }
+
+      const total = startDay + daysInMonth;
+      const remain = total % 7 === 0 ? 0 : 7 - (total % 7);
+      for (let d = 1; d <= remain; d++) {
+        const cell = document.createElement('div');
+        cell.className = 'day other';
+        cell.textContent = d;
+        grid.appendChild(cell);
+      }
+    }
+
+    function renderEventList() {
+      const dateStr = formatDate(selectedDate);
+      $('listDateLabel').textContent = `${selectedDate.getMonth()+1}月${selectedDate.getDate()}日 日程`;
+      const events = eventsOnDate(dateStr);
+      const list = $('eventList');
+      if (events.length === 0) {
+        list.innerHTML = '<li class="empty">暂无日程</li>';
+        return;
+      }
+      list.innerHTML = events.map(e => `
+        <li class="event-item" data-id="${e.id}">
+          <h3>${escapeHtml(e.title)}</h3>
+          <time>${formatDateTime(e.scheduledAt)}</time>
+          <div class="event-actions">
+            <button class="btn-danger" onclick="deleteEvent(${e.id})">删除</button>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    window.deleteEvent = async (id) => {
+      if (!confirm('确定删除此日程？')) return;
+      try {
+        await App().DeleteEvent(id);
+        await refreshEvents();
+      } catch (e) { alert(e.message || String(e)); }
+    };
+
+    $('prevMonth').addEventListener('click', () => {
+      current.setMonth(current.getMonth() - 1);
+      renderCalendar();
+    });
+    $('nextMonth').addEventListener('click', () => {
+      current.setMonth(current.getMonth() + 1);
+      renderCalendar();
+    });
+
+    $('addManualBtn').addEventListener('click', async () => {
+      const title = $('manualTitle').value.trim();
+      const time = $('manualTime').value;
+      if (!title || !time) { alert('请填写标题和时间'); return; }
+      try {
+        await App().CreateEvent(title, toRFC3339(time));
+        $('manualTitle').value = '';
+        $('manualTime').value = '';
+        await refreshEvents();
+      } catch (e) { alert(e.message || String(e)); }
+    });
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream, { mimeType: getSupportedMime() });
+        mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = () => processAudio();
+        mediaRecorder.start();
+        isRecording = true;
+        $('recordBtn').classList.add('recording');
+        $('recordBtn').textContent = '录音中… 松开结束';
+        setStatus($('voiceStatus'), '正在录音…', '');
+      } catch (e) {
+        setStatus($('voiceStatus'), '无法访问麦克风: ' + e.message, 'error');
+      }
+    }
+
+    function stopRecording() {
+      if (!isRecording || !mediaRecorder) return;
+      isRecording = false;
+      $('recordBtn').classList.remove('recording');
+      $('recordBtn').textContent = '按住说话';
+      mediaRecorder.stop();
+      mediaRecorder.stream.getTracks().forEach(t => t.stop());
+    }
+
+    function getSupportedMime() {
+      const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/wav'];
+      for (const t of types) {
+        if (MediaRecorder.isTypeSupported(t)) return t;
+      }
+      return '';
+    }
+
+    async function processAudio() {
+      setStatus($('voiceStatus'), '正在识别语音…', '');
+      const mimeType = mediaRecorder.mimeType || 'audio/webm';
+      const blob = new Blob(audioChunks, { type: mimeType });
+      const base64 = await blobToBase64(blob);
+      const format = mimeType.includes('webm') ? 'webm' : mimeType.includes('ogg') ? 'opus' : 'wav';
+
+      try {
+        const result = await App().VoiceCreateEvent(base64, mimeType, format);
+        $('recognitionText').textContent = result.text;
+        setStatus($('voiceStatus'), `已创建日程：${result.event.title}`, 'ok');
+        await refreshEvents();
+      } catch (e) {
+        setStatus($('voiceStatus'), e.message || String(e), 'error');
+      }
+    }
+
+    function blobToBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    const recordBtn = $('recordBtn');
+    recordBtn.addEventListener('mousedown', startRecording);
+    recordBtn.addEventListener('mouseup', stopRecording);
+    recordBtn.addEventListener('mouseleave', stopRecording);
+    recordBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); });
+    recordBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopRecording(); });
+
+    $('dismissReminder').addEventListener('click', () => {
+      $('reminderModal').classList.remove('show');
+    });
+
+    window.runtime?.EventsOn('reminder', (event) => {
+      $('reminderText').textContent = `${event.title}\n${formatDateTime(event.scheduledAt)}`;
+      $('reminderModal').classList.add('show');
+      refreshEvents();
+    });
+
+    (async function init() {
+      await loadAPIKey();
+      await refreshEvents();
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      $('manualTime').value = now.toISOString().slice(0, 16);
+    })();
+  </script>
+</body>
+</html>

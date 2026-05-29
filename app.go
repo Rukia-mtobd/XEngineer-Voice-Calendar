@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 
 	"xengineer-voice-calendar/internal/config"
 )
@@ -26,12 +28,18 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) Placeholder() {}
 
 // SaveApiKey 接收前端传入的 API Key 并保存到本地 config.json。
-func (a *App) SaveApiKey(key string) {
+func (a *App) SaveApiKey(key string) error {
+	if strings.TrimSpace(key) == "" {
+		return errors.New("API Key不能为空，请输入")
+	}
+
 	if err := config.SaveApiKey(key); err != nil {
 		fmt.Println("SaveApiKey error:", err)
-		return
+		return err
 	}
+
 	fmt.Println("SaveApiKey called, key length:", len(key))
+	return nil
 }
 
 // LoadApiKey 从本地 config.json 读取 API Key。

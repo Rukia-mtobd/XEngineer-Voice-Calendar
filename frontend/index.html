@@ -271,7 +271,7 @@
         </main>
     </div>
     <script type="module">
-        import { SaveApiKey } from './wailsjs/go/main/App.js';
+        import { SaveApiKey, RecognizeSpeech } from './wailsjs/go/main/App.js';
 
         const saveBtn = document.getElementById('btn-save-config');
         const apiKeyInput = document.getElementById('api-key');
@@ -291,6 +291,38 @@
             logArea.appendChild(entry);
         }
 
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const dataUrl = reader.result;
+                    resolve(dataUrl.split(',')[1]);
+                };
+                reader.onerror = () => reject(new Error('音频数据读取失败'));
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function mimeToFormat(mimeType) {
+            if (mimeType.includes('webm')) return 'webm';
+            if (mimeType.includes('ogg')) return 'opus';
+            if (mimeType.includes('wav')) return 'wav';
+            if (mimeType.includes('mp3')) return 'mp3';
+            return 'webm';
+        }
+
+        async function recognizeAudio(blob, mimeType) {
+            try {
+                appendLog('正在识别语音...');
+                const base64 = await blobToBase64(blob);
+                const format = mimeToFormat(mimeType);
+                const text = await RecognizeSpeech(base64, mimeType, format);
+                appendLog('识别结果：' + text);
+            } catch (err) {
+                appendLog(err.message || String(err), true);
+            }
+        }
+
         saveBtn.addEventListener('click', async () => {
             const key = apiKeyInput.value.trim();
             if (!key) {
@@ -306,7 +338,7 @@
             }
         });
 
-        // 语音录制（仅前端本地暂存，不上传、不识别）
+        // 语音录制，结束后调用后端语音识别
         const voiceBtn = document.getElementById('btn-voice');
         let mediaRecorder = null;
         let mediaStream = null;
@@ -345,13 +377,21 @@
                     }
                 });
 
-                mediaRecorder.addEventListener('stop', () => {
-                    recordedAudioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                mediaRecorder.addEventListener('stop', async () => {
+                    const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                    recordedAudioBlob = new Blob(audioChunks, { type: mimeType });
                     cleanupMediaStream();
                     isRecording = false;
                     pendingStop = false;
                     mediaRecorder = null;
                     appendLog('录音结束');
+
+                    if (!recordedAudioBlob.size) {
+                        appendLog('录音数据为空，请重新录制', true);
+                        return;
+                    }
+
+                    await recognizeAudio(recordedAudioBlob, mimeType);
                 });
 
                 mediaRecorder.start();

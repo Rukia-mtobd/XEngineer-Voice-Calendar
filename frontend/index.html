@@ -277,21 +277,33 @@
         const apiKeyInput = document.getElementById('api-key');
         const logArea = document.getElementById('log-area');
 
-        saveBtn.addEventListener('click', () => {
-            const key = apiKeyInput.value;
-            SaveApiKey(key);
-
+        function appendLog(message, isError = false) {
             const emptyHint = logArea.querySelector('.empty-hint');
             if (emptyHint) {
                 emptyHint.remove();
             }
 
             const entry = document.createElement('p');
-            entry.textContent = '已通知后端保存 API Key';
+            entry.textContent = message;
             entry.style.fontSize = '12px';
-            entry.style.color = '#4a5f73';
+            entry.style.color = isError ? '#dc2626' : '#4a5f73';
             entry.style.marginBottom = '6px';
             logArea.appendChild(entry);
+        }
+
+        saveBtn.addEventListener('click', async () => {
+            const key = apiKeyInput.value.trim();
+            if (!key) {
+                appendLog('API Key不能为空，请输入', true);
+                return;
+            }
+
+            try {
+                await SaveApiKey(key);
+                appendLog('API Key 保存成功');
+            } catch (err) {
+                appendLog(err.message || String(err), true);
+            }
         });
     </script>
 </body>

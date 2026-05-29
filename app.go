@@ -5,20 +5,26 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"xengineer-voice-calendar/internal/asr"
 	"xengineer-voice-calendar/internal/config"
+	"xengineer-voice-calendar/internal/llm"
 )
 
 // App 前后端交互载体，后续功能方法在此扩展。
 type App struct {
 	ctx context.Context
 	asr *asr.Client
+	llm *llm.Client
 }
 
 // NewApp 创建 App 实例。
 func NewApp() *App {
-	return &App{asr: asr.NewClient()}
+	return &App{
+		asr: asr.NewClient(),
+		llm: llm.NewClient(),
+	}
 }
 
 // startup 在应用启动时由 Wails 调用。
@@ -65,4 +71,16 @@ func (a *App) RecognizeSpeech(audioBase64, mimeType, format string) (string, err
 		return "", errors.New("请先配置并保存阿里云 API Key")
 	}
 	return a.asr.Recognize(apiKey, audioBase64, mimeType, format)
+}
+
+// ParseSchedule 调用大模型将语音识别文本解析为结构化日程。
+func (a *App) ParseSchedule(text string) (llm.ParsedSchedule, error) {
+	apiKey, err := config.LoadApiKey()
+	if err != nil {
+		return llm.ParsedSchedule{}, err
+	}
+	if strings.TrimSpace(apiKey) == "" {
+		return llm.ParsedSchedule{}, errors.New("请先配置并保存阿里云 API Key")
+	}
+	return a.llm.ParseSchedule(apiKey, text, time.Now())
 }

@@ -6,6 +6,10 @@ export function LoadApiKey() {
   return window['go']['main']['App']['LoadApiKey']();
 }
 
+export function ParseSchedule(arg1) {
+  return window['go']['main']['App']['ParseSchedule'](arg1);
+}
+
 export function Placeholder() {
   return window['go']['main']['App']['Placeholder']();
 }

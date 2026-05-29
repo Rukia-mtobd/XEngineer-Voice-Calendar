@@ -832,7 +832,7 @@
         let pickerViewMonth = selectedDate.getMonth();
 
         // ── 日程内存存储（前端数组，不持久化）──────────────────────
-        // 标准日程对象：{ title, date: 'YYYY-MM-DD', time: 'HH:mm', desc, isVoice?, createdAt? }
+        // 标准日程：{ title, date, startTime, endTime, duration, desc, isVoice?, createdAt? }
         const scheduleStore = [];
 
         function pad2(n) {
@@ -857,53 +857,113 @@
             return `${d.getMonth() + 1}月${d.getDate()}日`;
         }
 
+        function formatTimeRange(item) {
+            if (item.startTime && item.endTime) {
+                return `${item.startTime}-${item.endTime}`;
+            }
+            if (item.startTime) {
+                return item.startTime;
+            }
+            return '待定';
+        }
+
+        function formatDurationLabel(minutes) {
+            const value = Number(minutes) || 0;
+            if (value <= 0) {
+                return '';
+            }
+            if (value % 60 === 0) {
+                return `${value / 60}h`;
+            }
+            if (value > 60) {
+                return `${Math.floor(value / 60)}h${value % 60}m`;
+            }
+            return `${value}m`;
+        }
+
+        function calcDurationMinutes(startTime, endTime) {
+            if (!startTime || !endTime) {
+                return 0;
+            }
+            const [sh, sm] = startTime.split(':').map(Number);
+            const [eh, em] = endTime.split(':').map(Number);
+            let minutes = (eh * 60 + em) - (sh * 60 + sm);
+            if (minutes < 0) {
+                minutes += 24 * 60;
+            }
+            return minutes;
+        }
+
+        function normalizeScheduleItem(raw, fallbackDesc) {
+            const desc = (raw.desc || fallbackDesc || '').trim();
+            let title = (raw.title || '').trim() || desc || '语音日程';
+            let date = (raw.date || '').trim() || formatISO(today);
+            const startTime = (raw.startTime || raw.time || '').trim();
+            const endTime = (raw.endTime || '').trim();
+            let duration = Number(raw.duration) || 0;
+
+            if (duration <= 0 && startTime && endTime) {
+                duration = calcDurationMinutes(startTime, endTime);
+            }
+
+            return {
+                title,
+                date,
+                startTime,
+                endTime,
+                duration,
+                desc: desc || fallbackDesc,
+                isVoice: true,
+                createdAt: Date.now(),
+            };
+        }
+
+        function formatScheduleLogLabel(item) {
+            const label = formatRelativeDateLabel(item.date);
+            const timeText = formatTimeRange(item);
+            const durationText = formatDurationLabel(item.duration);
+            return `${label} ${timeText}${durationText ? ` · ${durationText}` : ''}`;
+        }
+
         /**
-         * 将语音识别文本通过大模型解析为日程并加入列表
-         * 解析失败时降级：使用原文作为标题
+         * 将语音识别文本通过大模型解析为日程并加入列表（支持多任务拆分）
          */
         async function createScheduleFromVoice(text) {
             const desc = text.trim();
-            let title = desc || '语音日程';
-            let date = null;
-            let time = null;
+            let schedules = [];
 
             try {
                 appendLog('正在调用大模型解析日程...');
-                const result = await ParseSchedule(desc);
-                title = (result.title || '').trim() || desc || '语音日程';
-                date = (result.date || '').trim() || null;
-                time = (result.time || '').trim() || null;
+                const results = await ParseSchedule(desc);
+                const list = Array.isArray(results) ? results : [results];
 
-                if (date && time) {
-                    appendLog(`大模型解析成功：${title}（${date} ${time}）`);
-                } else if (date || time) {
-                    appendLog(`大模型解析部分成功：${title}（${date || '日期待定'} ${time || '时间待定'}）`);
+                schedules = list
+                    .map((item) => normalizeScheduleItem(item, desc))
+                    .filter((item) => item.title);
+
+                if (schedules.length > 0) {
+                    appendLog(`大模型解析成功，共 ${schedules.length} 条日程`);
+                    schedules.forEach((item) => {
+                        appendLog(`· ${item.title}（${formatScheduleLogLabel(item)}）`);
+                    });
                 } else {
-                    appendLog('大模型未能识别日期/时间，已保留原文作为标题', true);
+                    appendLog('大模型未返回有效日程，已保留原文', true);
                 }
             } catch (err) {
                 appendLog('大模型解析失败，已使用原文：' + (err.message || String(err)), true);
             }
 
-            const schedule = {
-                title,
-                date: date || formatISO(today),
-                time: time || '09:00',
-                desc: desc,
-                isVoice: true,
-                createdAt: Date.now(),
-            };
-
-            if (date && time) {
-                const label = formatRelativeDateLabel(schedule.date);
-                appendLog(`已生成日程：${schedule.title}（${label}${schedule.time}）`);
-            } else if (!date && !time) {
-                schedule.title = desc || '语音日程';
+            if (schedules.length === 0) {
+                schedules = [normalizeScheduleItem({ title: desc || '语音日程', desc }, desc)];
             }
 
-            scheduleStore.unshift(schedule);
+            schedules.reverse().forEach((item) => {
+                scheduleStore.unshift(item);
+            });
 
-            selectedDate = parseISO(schedule.date);
+            appendLog(`已生成 ${schedules.length} 条日程`);
+
+            selectedDate = parseISO(schedules[0].date);
             updateDateDisplay(selectedDate);
 
             if (calendarOverlay.classList.contains('open')) {
@@ -934,7 +994,9 @@
                     if (a.isVoice && !b.isVoice) return -1;
                     if (!a.isVoice && b.isVoice) return 1;
                     if (a.isVoice && b.isVoice) return (b.createdAt || 0) - (a.createdAt || 0);
-                    return a.time.localeCompare(b.time);
+                    const aTime = a.startTime || '99:99';
+                    const bTime = b.startTime || '99:99';
+                    return aTime.localeCompare(bTime);
                 });
         }
 
@@ -944,17 +1006,21 @@
                 scheduleList.innerHTML = '<p class="schedule-empty">该日期暂无日程安排</p>';
                 return;
             }
-            scheduleList.innerHTML = items.map((item) => `
+            scheduleList.innerHTML = items.map((item) => {
+                const durationLabel = formatDurationLabel(item.duration);
+                return `
                 <article class="schedule-item${item.isVoice ? ' voice-created' : ''}">
                     <div class="schedule-time-block">
-                        <span class="schedule-time">${item.time}</span>
+                        <span class="schedule-time">${formatTimeRange(item)}</span>
+                        ${durationLabel ? `<span class="schedule-duration">${durationLabel}</span>` : ''}
                     </div>
                     <div class="schedule-body">
                         <h3 class="schedule-title">${item.title}</h3>
                         <p class="schedule-note">${item.desc}</p>
                     </div>
                 </article>
-            `).join('');
+            `;
+            }).join('');
         }
 
         function updateDateDisplay(date) {

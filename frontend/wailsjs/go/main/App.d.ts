@@ -4,7 +4,7 @@ import {llm} from '../models';
 
 export function LoadApiKey():Promise<string>;
 
-export function ParseSchedule(arg1:string):Promise<llm.ParsedSchedule>;
+export function ParseSchedule(arg1:string):Promise<Array<llm.ParsedSchedule>>;
 
 export function Placeholder():Promise<void>;
 

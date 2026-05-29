@@ -5,4 +5,6 @@ export function LoadApiKey():Promise<string>;
 
 export function Placeholder():Promise<void>;
 
+export function RecognizeSpeech(arg1:string,arg2:string,arg3:string):Promise<string>;
+
 export function SaveApiKey(arg1:string):Promise<void>;

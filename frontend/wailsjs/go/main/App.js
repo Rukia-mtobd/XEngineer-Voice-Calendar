@@ -10,6 +10,10 @@ export function Placeholder() {
   return window['go']['main']['App']['Placeholder']();
 }
 
+export function RecognizeSpeech(arg1, arg2, arg3) {
+  return window['go']['main']['App']['RecognizeSpeech'](arg1, arg2, arg3);
+}
+
 export function SaveApiKey(arg1) {
   return window['go']['main']['App']['SaveApiKey'](arg1);
 }

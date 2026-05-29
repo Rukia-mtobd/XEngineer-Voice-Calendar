@@ -479,6 +479,7 @@
         }
 
         .calendar-day-cell {
+            position: relative;
             aspect-ratio: 1;
             border: none;
             border-radius: 6px;
@@ -489,6 +490,30 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .calendar-day-cell.has-schedule::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #f59e0b;
+        }
+
+        .calendar-day-cell.has-schedule.selected::after {
+            background: #ffffff;
+        }
+
+        .schedule-item.voice-created {
+            border-left-color: #10b981;
+        }
+
+        .schedule-item.voice-created .schedule-time {
+            color: #059669;
         }
 
         .calendar-day-cell:hover:not(:disabled) {
@@ -589,58 +614,7 @@
                             </div>
                             <span class="calendar-badge" id="calendar-display-badge">今日 5 项日程</span>
                         </div>
-                        <div class="schedule-list" id="schedule-list">
-                            <article class="schedule-item">
-                                <div class="schedule-time-block">
-                                    <span class="schedule-time">09:00</span>
-                                    <span class="schedule-duration">1h</span>
-                                </div>
-                                <div class="schedule-body">
-                                    <h3 class="schedule-title">团队晨会</h3>
-                                    <p class="schedule-note">讨论本周开发进度与任务分配</p>
-                                </div>
-                            </article>
-                            <article class="schedule-item">
-                                <div class="schedule-time-block">
-                                    <span class="schedule-time">11:30</span>
-                                    <span class="schedule-duration">30m</span>
-                                </div>
-                                <div class="schedule-body">
-                                    <h3 class="schedule-title">产品需求评审</h3>
-                                    <p class="schedule-note">确认语音日历下一版本功能范围</p>
-                                </div>
-                            </article>
-                            <article class="schedule-item">
-                                <div class="schedule-time-block">
-                                    <span class="schedule-time">14:00</span>
-                                    <span class="schedule-duration">2h</span>
-                                </div>
-                                <div class="schedule-body">
-                                    <h3 class="schedule-title">代码开发</h3>
-                                    <p class="schedule-note">实现语音转日程与本地存储模块</p>
-                                </div>
-                            </article>
-                            <article class="schedule-item">
-                                <div class="schedule-time-block">
-                                    <span class="schedule-time">16:30</span>
-                                    <span class="schedule-duration">45m</span>
-                                </div>
-                                <div class="schedule-body">
-                                    <h3 class="schedule-title">技术分享</h3>
-                                    <p class="schedule-note">Wails 桌面应用开发实践经验交流</p>
-                                </div>
-                            </article>
-                            <article class="schedule-item">
-                                <div class="schedule-time-block">
-                                    <span class="schedule-time">18:00</span>
-                                    <span class="schedule-duration">1h</span>
-                                </div>
-                                <div class="schedule-body">
-                                    <h3 class="schedule-title">健身</h3>
-                                    <p class="schedule-note">下班后有氧运动，保持作息规律</p>
-                                </div>
-                            </article>
-                        </div>
+                        <div class="schedule-list" id="schedule-list"></div>
                     </div>
                 </section>
             </div>
@@ -662,7 +636,7 @@
     </div>
 
     <script type="module">
-        import { SaveApiKey, RecognizeSpeech } from './wailsjs/go/main/App.js';
+        import { SaveApiKey, RecognizeSpeech, ParseSchedule } from './wailsjs/go/main/App.js';
 
         const saveBtn = document.getElementById('btn-save-config');
         const apiKeyInput = document.getElementById('api-key');
@@ -711,6 +685,8 @@
                 const format = mimeToFormat(mimeType);
                 const text = await RecognizeSpeech(base64, mimeType, format);
                 appendLog('识别结果：' + text);
+                // 识别完成后调用大模型解析并生成日程
+                await createScheduleFromVoice(text);
             } catch (err) {
                 appendLog(err.message || String(err), true);
             }
@@ -855,30 +831,148 @@
         let pickerViewYear = selectedDate.getFullYear();
         let pickerViewMonth = selectedDate.getMonth();
 
-        const mockScheduleData = {
-            '2026-5-29': [
-                { time: '09:00', duration: '1h', title: '团队晨会', note: '讨论本周开发进度与任务分配' },
-                { time: '11:30', duration: '30m', title: '产品需求评审', note: '确认语音日历下一版本功能范围' },
-                { time: '14:00', duration: '2h', title: '代码开发', note: '实现语音转日程与本地存储模块' },
-                { time: '16:30', duration: '45m', title: '技术分享', note: 'Wails 桌面应用开发实践经验交流' },
-                { time: '18:00', duration: '1h', title: '健身', note: '下班后有氧运动，保持作息规律' },
-            ],
-            '2026-5-30': [
-                { time: '10:00', duration: '1h', title: '项目复盘', note: '总结本周迭代成果与改进点' },
-                { time: '15:00', duration: '1.5h', title: 'UI 设计评审', note: '确认日历交互方案' },
-            ],
-            '2026-6-1': [
-                { time: '09:30', duration: '45m', title: '月度规划', note: '制定 6 月开发计划' },
-                { time: '13:00', duration: '2h', title: '功能开发', note: '日程提醒模块开发' },
-                { time: '17:00', duration: '30m', title: '站会', note: '同步各模块进度' },
-            ],
-            '2026-6-15': [
-                { time: '14:00', duration: '1h', title: '版本发布', note: '语音日历 v1.0 内测发布' },
-            ],
-        };
+        // ── 日程内存存储（前端数组，不持久化）──────────────────────
+        // 标准日程：{ title, date, startTime, endTime, duration, desc, isVoice?, createdAt? }
+        const scheduleStore = [];
+
+        function pad2(n) {
+            return String(n).padStart(2, '0');
+        }
+
+        function formatISO(date) {
+            return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+        }
+
+        function parseISO(str) {
+            const [y, m, d] = str.split('-').map(Number);
+            return new Date(y, m - 1, d);
+        }
+
+        function formatRelativeDateLabel(dateStr) {
+            const d = parseISO(dateStr);
+            const diff = Math.round((d - today) / 86400000);
+            if (diff === 0) return '今天';
+            if (diff === 1) return '明天';
+            if (diff === 2) return '后天';
+            return `${d.getMonth() + 1}月${d.getDate()}日`;
+        }
+
+        function formatTimeRange(item) {
+            if (item.startTime && item.endTime) {
+                return `${item.startTime}-${item.endTime}`;
+            }
+            if (item.startTime) {
+                return item.startTime;
+            }
+            return '待定';
+        }
+
+        function formatDurationLabel(minutes) {
+            const value = Number(minutes) || 0;
+            if (value <= 0) {
+                return '';
+            }
+            if (value % 60 === 0) {
+                return `${value / 60}h`;
+            }
+            if (value > 60) {
+                return `${Math.floor(value / 60)}h${value % 60}m`;
+            }
+            return `${value}m`;
+        }
+
+        function calcDurationMinutes(startTime, endTime) {
+            if (!startTime || !endTime) {
+                return 0;
+            }
+            const [sh, sm] = startTime.split(':').map(Number);
+            const [eh, em] = endTime.split(':').map(Number);
+            let minutes = (eh * 60 + em) - (sh * 60 + sm);
+            if (minutes < 0) {
+                minutes += 24 * 60;
+            }
+            return minutes;
+        }
+
+        function normalizeScheduleItem(raw, fallbackDesc) {
+            const desc = (raw.desc || fallbackDesc || '').trim();
+            let title = (raw.title || '').trim() || desc || '语音日程';
+            let date = (raw.date || '').trim() || formatISO(today);
+            const startTime = (raw.startTime || raw.time || '').trim();
+            const endTime = (raw.endTime || '').trim();
+            let duration = Number(raw.duration) || 0;
+
+            if (duration <= 0 && startTime && endTime) {
+                duration = calcDurationMinutes(startTime, endTime);
+            }
+
+            return {
+                title,
+                date,
+                startTime,
+                endTime,
+                duration,
+                desc: desc || fallbackDesc,
+                isVoice: true,
+                createdAt: Date.now(),
+            };
+        }
+
+        function formatScheduleLogLabel(item) {
+            const label = formatRelativeDateLabel(item.date);
+            const timeText = formatTimeRange(item);
+            const durationText = formatDurationLabel(item.duration);
+            return `${label} ${timeText}${durationText ? ` · ${durationText}` : ''}`;
+        }
+
+        /**
+         * 将语音识别文本通过大模型解析为日程并加入列表（支持多任务拆分）
+         */
+        async function createScheduleFromVoice(text) {
+            const desc = text.trim();
+            let schedules = [];
+
+            try {
+                appendLog('正在调用大模型解析日程...');
+                const results = await ParseSchedule(desc);
+                const list = Array.isArray(results) ? results : [results];
+
+                schedules = list
+                    .map((item) => normalizeScheduleItem(item, desc))
+                    .filter((item) => item.title);
+
+                if (schedules.length > 0) {
+                    appendLog(`大模型解析成功，共 ${schedules.length} 条日程`);
+                    schedules.forEach((item) => {
+                        appendLog(`· ${item.title}（${formatScheduleLogLabel(item)}）`);
+                    });
+                } else {
+                    appendLog('大模型未返回有效日程，已保留原文', true);
+                }
+            } catch (err) {
+                appendLog('大模型解析失败，已使用原文：' + (err.message || String(err)), true);
+            }
+
+            if (schedules.length === 0) {
+                schedules = [normalizeScheduleItem({ title: desc || '语音日程', desc }, desc)];
+            }
+
+            schedules.reverse().forEach((item) => {
+                scheduleStore.unshift(item);
+            });
+
+            appendLog(`已生成 ${schedules.length} 条日程`);
+
+            selectedDate = parseISO(schedules[0].date);
+            updateDateDisplay(selectedDate);
+
+            if (calendarOverlay.classList.contains('open')) {
+                renderCalendarPicker();
+            }
+        }
 
         function dateKey(date) {
-            return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+            return formatISO(date);
         }
 
         function isSameDay(a, b) {
@@ -887,48 +981,53 @@
                 && a.getDate() === b.getDate();
         }
 
-        function getMockSchedules(date) {
+        function hasSchedulesOnDate(date) {
             const key = dateKey(date);
-            if (mockScheduleData[key]) {
-                return mockScheduleData[key];
-            }
-            const day = date.getDate();
-            const count = day % 4;
-            if (count === 0) {
-                return [];
-            }
-            return [
-                { time: '10:00', duration: '1h', title: '示例会议', note: `${date.getMonth() + 1} 月 ${day} 日的模拟日程` },
-                ...(count > 1 ? [{ time: '15:00', duration: '30m', title: '待办事项', note: '处理邮件与文档整理' }] : []),
-                ...(count > 2 ? [{ time: '19:00', duration: '1h', title: '个人学习', note: '阅读技术文档' }] : []),
-            ];
+            return scheduleStore.some((s) => s.date === key);
+        }
+
+        function getSchedulesForDate(date) {
+            const key = dateKey(date);
+            return scheduleStore
+                .filter((s) => s.date === key)
+                .sort((a, b) => {
+                    if (a.isVoice && !b.isVoice) return -1;
+                    if (!a.isVoice && b.isVoice) return 1;
+                    if (a.isVoice && b.isVoice) return (b.createdAt || 0) - (a.createdAt || 0);
+                    const aTime = a.startTime || '99:99';
+                    const bTime = b.startTime || '99:99';
+                    return aTime.localeCompare(bTime);
+                });
         }
 
         function renderScheduleList(date) {
-            const items = getMockSchedules(date);
+            const items = getSchedulesForDate(date);
             if (!items.length) {
                 scheduleList.innerHTML = '<p class="schedule-empty">该日期暂无日程安排</p>';
                 return;
             }
-            scheduleList.innerHTML = items.map((item) => `
-                <article class="schedule-item">
+            scheduleList.innerHTML = items.map((item) => {
+                const durationLabel = formatDurationLabel(item.duration);
+                return `
+                <article class="schedule-item${item.isVoice ? ' voice-created' : ''}">
                     <div class="schedule-time-block">
-                        <span class="schedule-time">${item.time}</span>
-                        <span class="schedule-duration">${item.duration}</span>
+                        <span class="schedule-time">${formatTimeRange(item)}</span>
+                        ${durationLabel ? `<span class="schedule-duration">${durationLabel}</span>` : ''}
                     </div>
                     <div class="schedule-body">
                         <h3 class="schedule-title">${item.title}</h3>
-                        <p class="schedule-note">${item.note}</p>
+                        <p class="schedule-note">${item.desc}</p>
                     </div>
                 </article>
-            `).join('');
+            `;
+            }).join('');
         }
 
         function updateDateDisplay(date) {
             calendarDisplayDay.textContent = date.getDate();
             calendarDisplayMonth.textContent = `${date.getFullYear()} 年 ${date.getMonth() + 1} 月`;
             calendarDisplayWeekday.textContent = WEEKDAYS[date.getDay()];
-            const count = getMockSchedules(date).length;
+            const count = getSchedulesForDate(date).length;
             const prefix = isSameDay(date, today) ? '今日' : '当日';
             calendarDisplayBadge.textContent = `${prefix} ${count} 项日程`;
             renderScheduleList(date);
@@ -974,6 +1073,9 @@
             }
             if (isSameDay(cellDate, selectedDate)) {
                 btn.classList.add('selected');
+            }
+            if (hasSchedulesOnDate(cellDate)) {
+                btn.classList.add('has-schedule');
             }
 
             btn.addEventListener('click', () => {

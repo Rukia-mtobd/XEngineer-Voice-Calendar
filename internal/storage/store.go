@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 

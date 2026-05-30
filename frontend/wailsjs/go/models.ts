@@ -40,6 +40,30 @@ export namespace llm {
 	        this.desc = source["desc"];
 	    }
 	}
+	export class UpdateIntent {
+	    action: string;
+	    id: number;
+	    date: string;
+	    title: string;
+	    newTitle: string;
+	    startTime: string;
+	    endTime: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateIntent(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.action = source["action"];
+	        this.id = source["id"];
+	        this.date = source["date"];
+	        this.title = source["title"];
+	        this.newTitle = source["newTitle"];
+	        this.startTime = source["startTime"];
+	        this.endTime = source["endTime"];
+	    }
+	}
 
 }
 

@@ -38,6 +38,10 @@ export function ParseSchedule(arg1) {
   return window['go']['main']['App']['ParseSchedule'](arg1);
 }
 
+export function ParseUpdateIntent(arg1) {
+  return window['go']['main']['App']['ParseUpdateIntent'](arg1);
+}
+
 export function Placeholder() {
   return window['go']['main']['App']['Placeholder']();
 }
@@ -48,4 +52,8 @@ export function RecognizeSpeech(arg1, arg2, arg3) {
 
 export function SaveApiKey(arg1) {
   return window['go']['main']['App']['SaveApiKey'](arg1);
+}
+
+export function UpdateScheduleByID(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['UpdateScheduleByID'](arg1, arg2, arg3, arg4);
 }

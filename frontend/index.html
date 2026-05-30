@@ -295,6 +295,12 @@
     }
     .tev-del:hover{background:var(--hairline);color:#ff3b30}
     .tev-del svg{width:14px;height:14px}
+    .tev-edit{
+      width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:var(--muted);
+      transition:background .2s var(--ease),color .2s var(--ease);
+    }
+    .tev-edit:hover{background:var(--hairline);color:var(--accent)}
+    .tev-edit svg{width:14px;height:14px}
 
     /* AI insight */
     .insight-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -451,6 +457,46 @@
     .confirm-btn.ok{background:var(--accent);color:#fff}
     .confirm-btn.ok:hover{background:var(--accent-focus)}
     .confirm-btn:active{transform:scale(.98)}
+
+    /* ---------- Edit schedule dialog ---------- */
+    .edit-mask{
+      position:fixed;inset:0;z-index:95;
+      background:rgba(29,29,31,.2);
+      backdrop-filter:saturate(180%) blur(8px);
+      opacity:0;pointer-events:none;
+      transition:opacity .25s var(--ease);
+      display:grid;place-items:center;
+      padding:20px;
+    }
+    .edit-mask.open{opacity:1;pointer-events:auto}
+    .edit-dialog{
+      width:min(460px,94vw);
+      border:1px solid var(--hairline);
+      border-radius:18px;
+      background:rgba(255,255,255,.92);
+      backdrop-filter:saturate(180%) blur(20px);
+      box-shadow:var(--shadow-float);
+      padding:16px;
+    }
+    [data-theme="dark"] .edit-dialog{background:rgba(22,22,23,.94)}
+    .edit-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .edit-title{font-size:16px;font-weight:600;letter-spacing:-.02em}
+    .edit-close{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;color:var(--muted)}
+    .edit-close:hover{background:var(--hairline);color:var(--ink)}
+    .edit-grid{display:grid;grid-template-columns:1fr;gap:10px}
+    .edit-field{display:flex;flex-direction:column;gap:6px}
+    .edit-field label{font-size:12px;color:var(--muted)}
+    .edit-field input{
+      height:38px;border:1px solid var(--hairline);border-radius:10px;background:var(--card);
+      padding:0 11px;color:var(--ink);outline:none;font-size:13px;
+    }
+    .edit-field input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+    .edit-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+    .edit-btn{height:34px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:600}
+    .edit-btn.cancel{background:var(--bg);color:var(--muted)}
+    .edit-btn.cancel:hover{background:var(--hairline);color:var(--ink)}
+    .edit-btn.save{background:var(--accent);color:#fff}
+    .edit-btn.save:hover{background:var(--accent-focus)}
 
     /* fade-up entrance */
     .fade-up{opacity:0;transform:translateY(8px);animation:fadeUp .45s var(--ease) forwards}
@@ -623,6 +669,33 @@
     </div>
   </div>
 
+  <div class="edit-mask" id="edit-mask" aria-hidden="true">
+    <div class="edit-dialog" role="dialog" aria-modal="true" aria-labelledby="edit-title">
+      <div class="edit-head">
+        <div class="edit-title" id="edit-title">编辑日程</div>
+        <button class="edit-close" id="edit-close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="edit-grid">
+        <div class="edit-field">
+          <label for="edit-title-input">标题</label>
+          <input id="edit-title-input" type="text" />
+        </div>
+        <div class="edit-field">
+          <label for="edit-start-input">开始时间（HH:mm）</label>
+          <input id="edit-start-input" type="text" placeholder="09:30" />
+        </div>
+        <div class="edit-field">
+          <label for="edit-end-input">结束时间（HH:mm，可空）</label>
+          <input id="edit-end-input" type="text" placeholder="10:30" />
+        </div>
+      </div>
+      <div class="edit-actions">
+        <button class="edit-btn cancel" id="edit-cancel">取消</button>
+        <button class="edit-btn save" id="edit-save">保存</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings sheet -->
   <div class="mask" id="mask"></div>
   <aside class="sheet" id="sheet" aria-hidden="true">
@@ -701,6 +774,16 @@
         addEvent:"添加日程",
         deleted:"已删除",
         deleteFail:"删除失败",
+        edit:"编辑",
+        editTitle:"编辑日程",
+        editLabelTitle:"标题",
+        editLabelStart:"开始时间（HH:mm）",
+        editLabelEnd:"结束时间（HH:mm，可空）",
+        editSave:"保存",
+        editCancel:"取消",
+        editInvalidTime:"时间格式需为 HH:mm",
+        editTitleRequired:"标题不能为空",
+        updated:"已更新",
         confirmTitle:"确认删除",
         confirmOk:"确认",
         confirmCancel:"取消",
@@ -714,7 +797,7 @@
         flexible:"待定",
         nothing:"暂时没有即将到来的安排。",
         view:{day:"日",week:"周",month:"月"},
-        toast:{thinking:"思考中…",transcribing:"识别中…",listening:"聆听中…",empty:"音频为空",noCatch:"没听清，请再说一次",unsupported:"当前环境不支持录音",added:"已添加：{{title}}",deleted:"已删除{{n}}条日程",noDeleteMatch:"没有匹配到可删除的日程",deleteCanceled:"已取消删除",noNotif:"暂无新通知",allSoon:"全部事件视图开发中",saved:"设置已保存",keyRequired:"请输入 API Key"}
+        toast:{thinking:"思考中…",transcribing:"识别中…",listening:"聆听中…",empty:"音频为空",noCatch:"没听清，请再说一次",unsupported:"当前环境不支持录音",added:"已添加：{{title}}",updated:"已更新：{{title}}",deleted:"已删除{{n}}条日程",noDeleteMatch:"没有匹配到可删除的日程",deleteCanceled:"已取消删除",noNotif:"暂无新通知",allSoon:"全部事件视图开发中",saved:"设置已保存",keyRequired:"请输入 API Key"}
       },
       "en-US":{
         tagline:"Your schedule, beautifully organized.",
@@ -747,6 +830,16 @@
         addEvent:"Add Event",
         deleted:"Deleted",
         deleteFail:"Delete failed",
+        edit:"Edit",
+        editTitle:"Edit Schedule",
+        editLabelTitle:"Title",
+        editLabelStart:"Start Time (HH:mm)",
+        editLabelEnd:"End Time (HH:mm, optional)",
+        editSave:"Save",
+        editCancel:"Cancel",
+        editInvalidTime:"Time format must be HH:mm",
+        editTitleRequired:"Title is required",
+        updated:"Updated",
         confirmTitle:"Confirm deletion",
         confirmOk:"Delete",
         confirmCancel:"Cancel",
@@ -760,7 +853,7 @@
         flexible:"flexible",
         nothing:"Nothing on the horizon yet.",
         view:{day:"Day",week:"Week",month:"Month"},
-        toast:{thinking:"Thinking…",transcribing:"Transcribing…",listening:"Listening…",empty:"Empty audio",noCatch:"Didn’t catch that",unsupported:"Recording unsupported",added:"Added: {{title}}",deleted:"Deleted {{n}} schedule(s)",noDeleteMatch:"No matching schedules to delete",deleteCanceled:"Delete cancelled",noNotif:"No new notifications",allSoon:"All events view coming soon",saved:"Settings saved",keyRequired:"API Key is required"}
+        toast:{thinking:"Thinking…",transcribing:"Transcribing…",listening:"Listening…",empty:"Empty audio",noCatch:"Didn’t catch that",unsupported:"Recording unsupported",added:"Added: {{title}}",updated:"Updated: {{title}}",deleted:"Deleted {{n}} schedule(s)",noDeleteMatch:"No matching schedules to delete",deleteCanceled:"Delete cancelled",noNotif:"No new notifications",allSoon:"All events view coming soon",saved:"Settings saved",keyRequired:"API Key is required"}
       }
     };
 
@@ -780,6 +873,8 @@
     const deleteScheduleByDateTitleDB = (date,title) => invokeBackend("DeleteScheduleByDateAndTitle", date, title);
     const deleteSchedulesByDateDB = (date) => invokeBackend("DeleteSchedulesByDate", date);
     const parseDeleteIntentDB = (text) => invokeBackend("ParseDeleteIntent", text);
+    const parseUpdateIntentDB = (text) => invokeBackend("ParseUpdateIntent", text);
+    const updateScheduleByIDDB = (id,title,startTime,endTime) => invokeBackend("UpdateScheduleByID", id, title, startTime, endTime);
 
     const $=(id)=>document.getElementById(id);
     const el={
@@ -794,6 +889,7 @@
       toast:$("toast"),mask:$("mask"),sheet:$("sheet"),sheetClose:$("sheet-close"),
       apiKey:$("api-key"),btnSave:$("btn-save"),
       confirmMask:$("confirm-mask"),confirmTitle:$("confirm-title"),confirmText:$("confirm-text"),confirmOk:$("confirm-ok"),confirmCancel:$("confirm-cancel"),
+      editMask:$("edit-mask"),editTitle:$("edit-title"),editClose:$("edit-close"),editTitleInput:$("edit-title-input"),editStartInput:$("edit-start-input"),editEndInput:$("edit-end-input"),editCancel:$("edit-cancel"),editSave:$("edit-save"),
       navSettings:$("nav-settings"),btnSearch:$("btn-search"),btnBell:$("btn-bell"),
       themeToggle:$("theme-toggle"),themeIcon:$("theme-icon"),themeSeg:$("theme-seg"),langSeg:$("lang-seg"),
       wave:$("wave"),segment:$("segment"),avatar:$("avatar")
@@ -807,6 +903,7 @@
     let activeFilterDate="";
     let recorder=null,stream=null,chunks=[],isRecording=false,pendingStop=false,toastTimer=null;
     let confirmResolver=null;
+    let editingScheduleId=0;
 
     const iso=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     const parseISO=(s)=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
@@ -951,6 +1048,9 @@
               <div class="tev-t">${it.title}</div>
               <div class="tev-s">${fmtTimeRange(it)}${durationLabel(it.duration)?" · "+durationLabel(it.duration):""}</div>
             </div>
+            <button class="tev-edit" data-edit-id="${it.id||0}" title="${t("edit")}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="m16.5 3.5 4 4L8 20l-4 1 1-4z"/></svg>
+            </button>
             <button class="tev-del" data-del-id="${it.id||0}" data-del-date="${it.date}" data-del-title="${it.title}" title="${t("deleted")}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M7 6l1 14h8l1-14M10 11v6M14 11v6"/></svg>
             </button>
@@ -958,6 +1058,15 @@
           ${addBtn}`;
       }
       const qa=$("quick-add");if(qa)qa.addEventListener("click",()=>el.cmdInput.focus());
+      el.todayBody.querySelectorAll(".tev-edit").forEach((btn)=>{
+        btn.addEventListener("click",(ev)=>{
+          ev.stopPropagation();
+          const id = Number(btn.dataset.editId)||0;
+          const item = schedules.find((s)=>Number(s.id)===id);
+          if(!item) return;
+          openEditDialog(item);
+        });
+      });
       el.todayBody.querySelectorAll(".tev-del").forEach((btn)=>{
         btn.addEventListener("click", async (ev)=>{
           ev.stopPropagation();
@@ -1032,6 +1141,26 @@
       const ok = await openConfirmDialog(message);
       if(!ok) showToast(t("toast.deleteCanceled"));
       return ok;
+    }
+    function isValidHHMM(v){
+      return /^\d{2}:\d{2}$/.test(v);
+    }
+    function closeEditDialog(){
+      el.editMask.classList.remove("open");
+      el.editMask.setAttribute("aria-hidden","true");
+      editingScheduleId=0;
+    }
+    function openEditDialog(item){
+      editingScheduleId = Number(item.id)||0;
+      el.editTitle.textContent=t("editTitle");
+      el.editTitleInput.value=item.title||"";
+      el.editStartInput.value=item.startTime||"";
+      el.editEndInput.value=item.endTime||"";
+      el.editTitleInput.placeholder=t("editLabelTitle");
+      el.editStartInput.placeholder="09:30";
+      el.editEndInput.placeholder="10:30";
+      el.editMask.classList.add("open");
+      el.editMask.setAttribute("aria-hidden","false");
     }
 
     /* ---- theme ---- */
@@ -1137,14 +1266,68 @@
       return true;
     }
 
+    async function tryUpdateByVoice(text){
+      let intent=null;
+      try{
+        intent = await parseUpdateIntentDB(text);
+      }catch(_){
+        return false;
+      }
+      if(!intent || intent.action!=="update") return false;
+
+      let target = null;
+      if(Number(intent.id)>0){
+        target = schedules.find((s)=>Number(s.id)===Number(intent.id)) || null;
+      }else{
+        target = schedules.find((s)=>{
+          const dateMatch = !intent.date || s.date===intent.date;
+          const titleMatch = !intent.title || String(s.title||"").includes(intent.title);
+          return dateMatch && titleMatch;
+        }) || null;
+      }
+      if(!target){
+        showToast(t("toast.noDeleteMatch"));
+        return true;
+      }
+
+      const newTitle = (intent.newTitle||target.title||"").trim();
+      const newStart = (intent.startTime||target.startTime||"").trim();
+      const newEnd = (intent.endTime??target.endTime??"").trim();
+      if(!newTitle){
+        showToast(t("editTitleRequired"));
+        return true;
+      }
+      if(newStart && !isValidHHMM(newStart)){
+        showToast(t("editInvalidTime"));
+        return true;
+      }
+      if(newEnd && !isValidHHMM(newEnd)){
+        showToast(t("editInvalidTime"));
+        return true;
+      }
+      try{
+        await updateScheduleByIDDB(Number(target.id), newTitle, newStart, newEnd);
+        await refreshByCurrentFilter();
+        renderAll();
+        showToast(t("toast.updated",{title:newTitle}));
+      }catch(err){
+        showToast(String(err));
+      }
+      return true;
+    }
+
     async function recognize(blob,mime){
       showToast(t("toast.transcribing"));
       try{
         const b64=await blobToBase64(blob);
         const text=await RecognizeSpeech(b64,mime,mimeToFormat(mime));
         if(text&&text.trim()){
-          const handledDelete = await tryDeleteByVoice(text.trim());
-          if(!handledDelete) await parseAndAdd(text);
+          const query=text.trim();
+          const handledDelete = await tryDeleteByVoice(query);
+          if(handledDelete) return;
+          const handledUpdate = await tryUpdateByVoice(query);
+          if(handledUpdate) return;
+          await parseAndAdd(text);
         }
         else showToast(t("toast.noCatch"));
       }catch(err){showToast(String(err));}
@@ -1214,14 +1397,24 @@
       el.addBtn.addEventListener("click",()=>{
         const v=el.cmdInput.value.trim();
         if(v){
-          tryDeleteByVoice(v).then((handled)=>{ if(!handled) return parseAndAdd(v); });
+          tryDeleteByVoice(v).then((handledDelete)=>{
+            if(handledDelete) return;
+            return tryUpdateByVoice(v).then((handledUpdate)=>{
+              if(!handledUpdate) return parseAndAdd(v);
+            });
+          });
         }else startRecording();
       });
       el.cmdInput.addEventListener("keydown",(ev)=>{
         if(ev.key!=="Enter") return;
         const v = el.cmdInput.value.trim();
         if(!v) return;
-        tryDeleteByVoice(v).then((handled)=>{ if(!handled) return parseAndAdd(v); });
+        tryDeleteByVoice(v).then((handledDelete)=>{
+          if(handledDelete) return;
+          return tryUpdateByVoice(v).then((handledUpdate)=>{
+            if(!handledUpdate) return parseAndAdd(v);
+          });
+        });
       });
 
       el.navSettings.addEventListener("click",openSheet);
@@ -1234,6 +1427,27 @@
       el.confirmCancel.addEventListener("click",()=>closeConfirmDialog(false));
       el.confirmOk.addEventListener("click",()=>closeConfirmDialog(true));
       el.confirmMask.addEventListener("click",(ev)=>{ if(ev.target===el.confirmMask) closeConfirmDialog(false); });
+      el.editClose.addEventListener("click",closeEditDialog);
+      el.editCancel.addEventListener("click",closeEditDialog);
+      el.editMask.addEventListener("click",(ev)=>{ if(ev.target===el.editMask) closeEditDialog(); });
+      el.editSave.addEventListener("click", async ()=>{
+        if(!editingScheduleId) return;
+        const title = (el.editTitleInput.value||"").trim();
+        const startTime = (el.editStartInput.value||"").trim();
+        const endTime = (el.editEndInput.value||"").trim();
+        if(!title){ showToast(t("editTitleRequired")); return; }
+        if(startTime && !isValidHHMM(startTime)){ showToast(t("editInvalidTime")); return; }
+        if(endTime && !isValidHHMM(endTime)){ showToast(t("editInvalidTime")); return; }
+        try{
+          await updateScheduleByIDDB(editingScheduleId, title, startTime, endTime);
+          closeEditDialog();
+          await refreshByCurrentFilter();
+          renderAll();
+          showToast(t("toast.updated",{title}));
+        }catch(err){
+          showToast(String(err));
+        }
+      });
 
       el.themeToggle.addEventListener("click",()=>{
         const next=document.documentElement.dataset.theme==="dark"?"light":"dark";
@@ -1249,6 +1463,10 @@
       });
 
       document.addEventListener("keydown",(ev)=>{
+        if(ev.key==="Escape" && el.editMask.classList.contains("open")){
+          closeEditDialog();
+          return;
+        }
         if(ev.key==="Escape" && el.confirmMask.classList.contains("open")){
           closeConfirmDialog(false);
           return;

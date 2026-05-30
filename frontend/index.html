@@ -458,45 +458,155 @@
     .confirm-btn.ok:hover{background:var(--accent-focus)}
     .confirm-btn:active{transform:scale(.98)}
 
-    /* ---------- Edit schedule dialog ---------- */
-    .edit-mask{
-      position:fixed;inset:0;z-index:95;
-      background:rgba(29,29,31,.2);
-      backdrop-filter:saturate(180%) blur(8px);
+    /* ---------- Add/Edit schedule dialogs ---------- */
+    .add-mask,.edit-mask{
+      position:fixed;inset:0;z-index:96;
+      background:rgba(20,24,32,.2);
+      backdrop-filter:saturate(180%) blur(10px);
       opacity:0;pointer-events:none;
-      transition:opacity .25s var(--ease);
+      transition:opacity .28s var(--ease);
       display:grid;place-items:center;
       padding:20px;
     }
-    .edit-mask.open{opacity:1;pointer-events:auto}
-    .edit-dialog{
-      width:min(460px,94vw);
+    .add-mask.open,.edit-mask.open{opacity:1;pointer-events:auto}
+    .add-dialog,.edit-dialog{
+      width:min(700px,95vw);
+      border:1px solid var(--hairline);
+      border-radius:28px;
+      background:rgba(255,255,255,.86);
+      backdrop-filter:saturate(180%) blur(28px);
+      box-shadow:0 24px 60px rgba(10,18,28,.14),0 8px 22px rgba(10,18,28,.08);
+      padding:24px;
+      transform:translateY(8px) scale(.985);
+      transition:transform .3s var(--ease),opacity .3s var(--ease);
+    }
+    .add-mask.open .add-dialog,.edit-mask.open .edit-dialog{transform:translateY(0) scale(1)}
+    [data-theme="dark"] .add-dialog,[data-theme="dark"] .edit-dialog{background:rgba(24,24,27,.9)}
+    [data-theme="dark"] .add-mask,[data-theme="dark"] .edit-mask{background:rgba(8,10,14,.46)}
+    .modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+    .modal-title-wrap{display:flex;flex-direction:column;gap:6px}
+    .modal-title{font-size:30px;font-weight:600;letter-spacing:-.03em;line-height:1.1}
+    .modal-sub{font-size:14px;color:var(--muted);line-height:1.45}
+    .modal-close{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;color:var(--muted);flex:0 0 auto}
+    .modal-close:hover{background:var(--hairline);color:var(--ink)}
+    .modal-section{margin-top:16px}
+    .event-preview{
       border:1px solid var(--hairline);
       border-radius:18px;
-      background:rgba(255,255,255,.92);
-      backdrop-filter:saturate(180%) blur(20px);
-      box-shadow:var(--shadow-float);
-      padding:16px;
+      background:rgba(255,255,255,.62);
+      padding:13px 14px;
+      display:flex;flex-direction:column;gap:6px;
     }
-    [data-theme="dark"] .edit-dialog{background:rgba(22,22,23,.94)}
-    .edit-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-    .edit-title{font-size:16px;font-weight:600;letter-spacing:-.02em}
-    .edit-close{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;color:var(--muted)}
-    .edit-close:hover{background:var(--hairline);color:var(--ink)}
-    .edit-grid{display:grid;grid-template-columns:1fr;gap:10px}
-    .edit-field{display:flex;flex-direction:column;gap:6px}
-    .edit-field label{font-size:12px;color:var(--muted)}
-    .edit-field input{
-      height:38px;border:1px solid var(--hairline);border-radius:10px;background:var(--card);
-      padding:0 11px;color:var(--ink);outline:none;font-size:13px;
+    [data-theme="dark"] .event-preview{background:rgba(255,255,255,.04)}
+    .preview-title{font-size:15px;font-weight:600;letter-spacing:-.01em}
+    .preview-meta{font-size:13px;color:var(--muted)}
+    .ai-pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:10px 14px;border-radius:999px;
+      border:1px solid var(--hairline);
+      background:rgba(255,255,255,.72);
+      font-size:13px;font-weight:600;color:var(--ink);
+      cursor:pointer;
     }
-    .edit-field input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
-    .edit-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
-    .edit-btn{height:34px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:600}
-    .edit-btn.cancel{background:var(--bg);color:var(--muted)}
-    .edit-btn.cancel:hover{background:var(--hairline);color:var(--ink)}
-    .edit-btn.save{background:var(--accent);color:#fff}
-    .edit-btn.save:hover{background:var(--accent-focus)}
+    [data-theme="dark"] .ai-pill{background:rgba(255,255,255,.06)}
+    .ai-pill:hover{border-color:rgba(0,102,255,.24);background:var(--accent-soft)}
+    .title-input{
+      width:100%;height:56px;border:1px solid var(--hairline);border-radius:18px;background:var(--bg);
+      padding:0 16px;font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);outline:none;
+    }
+    .title-input:focus,.time-input:focus,.note-input:focus{
+      border-color:#0066ff;box-shadow:0 0 0 4px rgba(0,102,255,.12);
+    }
+    .date-pill{
+      display:inline-flex;align-items:center;gap:8px;
+      height:40px;padding:0 14px;border-radius:999px;
+      border:1px solid var(--hairline);background:rgba(255,255,255,.72);
+      font-size:13px;font-weight:600;cursor:pointer;
+    }
+    [data-theme="dark"] .date-pill{background:rgba(255,255,255,.06)}
+    .date-pill:hover{background:var(--accent-soft);border-color:rgba(0,102,255,.25)}
+    .date-picker-pop{
+      position:fixed;z-index:1100;
+      width:320px;
+      background:rgba(255,255,255,.85);
+      backdrop-filter:blur(20px);
+      border-radius:11px;
+      box-shadow:0 4px 12px rgba(0,0,0,.08);
+      border:0;
+      opacity:0;pointer-events:none;
+      transform:translateY(6px) scale(.98);
+      transition:opacity .2s var(--ease),transform .2s var(--ease);
+      padding:12px;
+    }
+    .date-picker-pop.open{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+    .dp-head{display:flex;align-items:center;justify-content:space-between;padding:0 0 8px}
+    .dp-title{font-size:17px;font-weight:600;letter-spacing:-0.374px;color:#1d1d1f}
+    .dp-nav{display:flex;gap:4px}
+    .dp-nav button{
+      width:28px;height:28px;border-radius:8px;color:#7a7a7a;
+      display:grid;place-items:center;background:transparent;
+      transition:background .2s var(--ease),color .2s var(--ease);
+    }
+    .dp-nav button:hover{background:rgba(0,0,0,.05);color:#1d1d1f}
+    .dp-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:8px 0;border-top:1px solid #e0e0e0}
+    .dp-week span{font-size:12px;color:#7a7a7a;text-align:center;letter-spacing:-0.12px}
+    .dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding-top:4px}
+    .dp-day{
+      height:34px;border-radius:5px;display:grid;place-items:center;
+      font-size:14px;letter-spacing:-0.224px;color:#1d1d1f;
+      transition:background .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease);
+      border:1px solid transparent;background:transparent;
+    }
+    .dp-day:hover{background:rgba(0,0,0,.05)}
+    .dp-day.is-muted{color:#cccccc;pointer-events:none}
+    .dp-day.is-today{border-color:#0066cc;color:#0066cc;background:transparent}
+    .dp-day.is-selected{background:#0071e3;color:#fff;border-color:#0071e3;border-radius:999px}
+    .dp-foot{
+      display:flex;justify-content:flex-end;gap:8px;margin-top:12px;padding-top:8px;
+      border-top:1px solid #e0e0e0;
+    }
+    .dp-foot button{
+      height:30px;padding:0 12px;border-radius:999px;font-size:14px;color:#0066cc;
+      background:transparent;
+      transition:background .2s var(--ease),color .2s var(--ease);
+    }
+    .dp-foot button:hover{background:rgba(0,0,0,.05);color:#0071e3}
+    .time-card{
+      border:1px solid var(--hairline);border-radius:20px;padding:14px;background:rgba(255,255,255,.62);
+    }
+    [data-theme="dark"] .time-card{background:rgba(255,255,255,.04)}
+    .time-title{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:-.01em;margin-bottom:10px}
+    .time-row{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+    .time-arrow{font-size:16px;color:var(--muted);padding:0 2px}
+    .time-input{
+      height:44px;border:1px solid var(--hairline);border-radius:14px;background:var(--card);
+      padding:0 12px;font-size:15px;font-weight:600;outline:none;color:var(--ink);
+    }
+    .notes-toggle{
+      border:1px dashed var(--hairline);border-radius:14px;padding:10px 12px;
+      font-size:13px;color:var(--muted);cursor:pointer;
+    }
+    .notes-toggle:hover{color:var(--ink);border-color:rgba(0,102,255,.24);background:var(--accent-soft)}
+    .note-wrap{margin-top:10px}
+    .note-input{
+      width:100%;min-height:92px;resize:vertical;border:1px solid var(--hairline);border-radius:14px;background:var(--card);
+      padding:10px 12px;font-size:14px;color:var(--ink);outline:none;
+    }
+    .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+    .modal-btn-cancel{
+      height:40px;padding:0 14px;border-radius:999px;background:rgba(0,0,0,.04);color:var(--muted);font-size:13px;font-weight:600;
+    }
+    .modal-btn-cancel:hover{background:var(--hairline);color:var(--ink)}
+    .modal-btn-save{
+      height:40px;padding:0 18px;border-radius:999px;background:#0066ff;color:#fff;font-size:13px;font-weight:600;
+      box-shadow:0 8px 20px rgba(0,102,255,.28);
+    }
+    .modal-btn-save:hover{background:#0b63ee}
+    .date-hidden-input{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
+    @media (max-width:760px){
+      .add-dialog,.edit-dialog{width:min(700px,96vw);padding:18px;border-radius:22px}
+      .modal-title{font-size:26px}
+    }
 
     /* fade-up entrance */
     .fade-up{opacity:0;transform:translateY(8px);animation:fadeUp .45s var(--ease) forwards}
@@ -658,6 +768,22 @@
 
   <div class="toast" id="toast"></div>
 
+  <div class="date-picker-pop" id="date-picker-pop" aria-hidden="true">
+    <div class="dp-head">
+      <div class="dp-title" id="dp-title">2026年5月</div>
+      <div class="dp-nav">
+        <button id="dp-prev" aria-label="prev"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button>
+        <button id="dp-next" aria-label="next"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></button>
+      </div>
+    </div>
+    <div class="dp-week" id="dp-week"></div>
+    <div class="dp-grid" id="dp-grid"></div>
+    <div class="dp-foot">
+      <button id="dp-today">今天</button>
+      <button id="dp-clear">清除</button>
+    </div>
+  </div>
+
   <div class="confirm-mask" id="confirm-mask" aria-hidden="true">
     <div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text">
       <div class="confirm-title" id="confirm-title">确认删除</div>
@@ -671,27 +797,89 @@
 
   <div class="edit-mask" id="edit-mask" aria-hidden="true">
     <div class="edit-dialog" role="dialog" aria-modal="true" aria-labelledby="edit-title">
-      <div class="edit-head">
-        <div class="edit-title" id="edit-title">编辑日程</div>
-        <button class="edit-close" id="edit-close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <div class="modal-head">
+        <div class="modal-title-wrap">
+          <div class="modal-title" id="edit-title">✏️ 编辑日程</div>
+          <div class="modal-sub" id="edit-subtitle">修改你的计划安排</div>
+        </div>
+        <button class="modal-close" id="edit-close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       </div>
-      <div class="edit-grid">
-        <div class="edit-field">
-          <label for="edit-title-input">标题</label>
-          <input id="edit-title-input" type="text" />
-        </div>
-        <div class="edit-field">
-          <label for="edit-start-input">开始时间（HH:mm）</label>
-          <input id="edit-start-input" type="text" placeholder="09:30" />
-        </div>
-        <div class="edit-field">
-          <label for="edit-end-input">结束时间（HH:mm，可空）</label>
-          <input id="edit-end-input" type="text" placeholder="10:30" />
+
+      <div class="modal-section">
+        <div class="event-preview">
+          <div class="preview-title" id="edit-preview-title">产品评审会议</div>
+          <div class="preview-meta" id="edit-preview-date">📅 5月30日 周五</div>
+          <div class="preview-meta" id="edit-preview-time">🕘 15:00 - 16:00</div>
         </div>
       </div>
-      <div class="edit-actions">
-        <button class="edit-btn cancel" id="edit-cancel">取消</button>
-        <button class="edit-btn save" id="edit-save">保存</button>
+
+      <div class="modal-section">
+        <input class="title-input" id="edit-title-input" type="text" data-i18n-ph="titlePlaceholder" placeholder="输入日程标题" />
+      </div>
+
+      <div class="modal-section">
+        <button class="date-pill" id="edit-date-pill" type="button">📅 <span id="edit-date-text">5月30日 周五</span></button>
+        <input id="edit-date-input" class="date-hidden-input" type="date" />
+      </div>
+
+      <div class="modal-section">
+        <div class="time-card">
+          <div class="time-title" id="edit-time-title" data-i18n="timeArrange">🕘 时间安排</div>
+          <div class="time-row">
+            <input class="time-input" id="edit-start-input" type="text" placeholder="09:30" />
+            <span class="time-arrow">→</span>
+            <input class="time-input" id="edit-end-input" type="text" placeholder="10:30" />
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn-cancel" id="edit-cancel">取消</button>
+        <button class="modal-btn-save" id="edit-save">✨ 保存日程</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="add-mask" id="add-mask" aria-hidden="true">
+    <div class="add-dialog" role="dialog" aria-modal="true" aria-labelledby="add-title">
+      <div class="modal-head">
+        <div class="modal-title-wrap">
+          <div class="modal-title" id="add-title">✨ 新建日程</div>
+          <div class="modal-sub" id="add-subtitle">快速安排新的计划，让 AI 帮你管理时间</div>
+        </div>
+        <button class="modal-close" id="add-close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+
+      <div class="modal-section">
+        <input class="title-input" id="add-title-input" type="text" data-i18n-ph="titlePlaceholder" placeholder="输入日程标题" />
+      </div>
+
+      <div class="modal-section">
+        <button class="date-pill" id="add-date-pill" type="button">📅 <span id="add-date-text">5月30日 周五</span></button>
+        <input id="add-date-input" class="date-hidden-input" type="date" />
+      </div>
+
+      <div class="modal-section">
+        <div class="time-card">
+          <div class="time-title" id="add-time-title" data-i18n="timeArrange">🕘 时间安排</div>
+          <div class="time-row">
+            <input class="time-input" id="add-start-input" type="text" placeholder="09:30" />
+            <span class="time-arrow">→</span>
+            <input class="time-input" id="add-end-input" type="text" placeholder="10:30" />
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="notes-toggle" id="add-note-toggle">＋ 添加备注</div>
+        <div class="note-wrap" id="add-note-wrap" style="display:none;">
+          <textarea class="note-input" id="add-desc-input" data-i18n-ph="notePlaceholder" placeholder="补充地点、提醒或备注信息"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn-cancel" id="add-cancel">取消</button>
+        <button class="modal-btn-save" id="add-save">✨ 保存日程</button>
       </div>
     </div>
   </div>
@@ -759,6 +947,9 @@
         apiKey:"API Key",
         apiHint:"用于语音识别与 AI 解析。",
         apiPlaceholder:"请输入你的 API Key",
+        titlePlaceholder:"输入日程标题",
+        notePlaceholder:"补充地点、提醒或备注信息",
+        timeArrange:"🕘 时间安排",
         save:"保存",
         cmdPlaceholder:"让 AI 帮你安排会议、检查冲突或规划一天…",
         greetMorning:"早上好，Olivia",
@@ -784,6 +975,22 @@
         editInvalidTime:"时间格式需为 HH:mm",
         editTitleRequired:"标题不能为空",
         updated:"已更新",
+        addTitle:"添加日程",
+        addLabelDate:"日期",
+        addLabelTitle:"标题",
+        addLabelStart:"开始时间（HH:mm）",
+        addLabelEnd:"结束时间（HH:mm，可选）",
+        addLabelDesc:"备注",
+        addSave:"保存",
+        addCancel:"取消",
+        addDateRequired:"日期不能为空",
+        addSuccess:"已新增：{{title}}",
+        addSub:"快速安排新的计划，让 AI 帮你管理时间",
+        editSub:"修改你的计划安排",
+        addNotesToggle:"＋ 添加备注",
+        dateDisplay:"{{m}}月{{d}}日 {{w}}",
+        dpToday:"今天",
+        dpClear:"清除",
         confirmTitle:"确认删除",
         confirmOk:"确认",
         confirmCancel:"取消",
@@ -815,6 +1022,9 @@
         apiKey:"API Key",
         apiHint:"Used for speech recognition and AI parsing.",
         apiPlaceholder:"Enter your API Key",
+        titlePlaceholder:"Enter schedule title",
+        notePlaceholder:"Add location, reminder, or note",
+        timeArrange:"🕘 Time Arrangement",
         save:"Save",
         cmdPlaceholder:"Ask AI to schedule a meeting, check conflicts, or plan your day…",
         greetMorning:"Good morning, Olivia",
@@ -840,6 +1050,22 @@
         editInvalidTime:"Time format must be HH:mm",
         editTitleRequired:"Title is required",
         updated:"Updated",
+        addTitle:"Add Schedule",
+        addLabelDate:"Date",
+        addLabelTitle:"Title",
+        addLabelStart:"Start Time (HH:mm)",
+        addLabelEnd:"End Time (HH:mm, optional)",
+        addLabelDesc:"Note",
+        addSave:"Save",
+        addCancel:"Cancel",
+        addDateRequired:"Date is required",
+        addSuccess:"Added: {{title}}",
+        addSub:"Quickly plan a new schedule, let AI manage your time",
+        editSub:"Modify your current plan",
+        addNotesToggle:"+ Add notes",
+        dateDisplay:"{{m}}/{{d}} {{w}}",
+        dpToday:"Today",
+        dpClear:"Clear",
         confirmTitle:"Confirm deletion",
         confirmOk:"Delete",
         confirmCancel:"Cancel",
@@ -889,7 +1115,12 @@
       toast:$("toast"),mask:$("mask"),sheet:$("sheet"),sheetClose:$("sheet-close"),
       apiKey:$("api-key"),btnSave:$("btn-save"),
       confirmMask:$("confirm-mask"),confirmTitle:$("confirm-title"),confirmText:$("confirm-text"),confirmOk:$("confirm-ok"),confirmCancel:$("confirm-cancel"),
-      editMask:$("edit-mask"),editTitle:$("edit-title"),editClose:$("edit-close"),editTitleInput:$("edit-title-input"),editStartInput:$("edit-start-input"),editEndInput:$("edit-end-input"),editCancel:$("edit-cancel"),editSave:$("edit-save"),
+      editMask:$("edit-mask"),editTitle:$("edit-title"),editClose:$("edit-close"),editTitleInput:$("edit-title-input"),editStartInput:$("edit-start-input"),editEndInput:$("edit-end-input"),editCancel:$("edit-cancel"),editSave:$("edit-save"),editDateInput:$("edit-date-input"),
+      addMask:$("add-mask"),addTitle:$("add-title"),addClose:$("add-close"),addDateInput:$("add-date-input"),addTitleInput:$("add-title-input"),addStartInput:$("add-start-input"),addEndInput:$("add-end-input"),addDescInput:$("add-desc-input"),addCancel:$("add-cancel"),addSave:$("add-save"),
+      addDatePill:$("add-date-pill"),addDateText:$("add-date-text"),addNoteToggle:$("add-note-toggle"),addNoteWrap:$("add-note-wrap"),
+      editSubtitle:$("edit-subtitle"),editPreviewTitle:$("edit-preview-title"),editPreviewDate:$("edit-preview-date"),editPreviewTime:$("edit-preview-time"),editDatePill:$("edit-date-pill"),editDateText:$("edit-date-text"),
+      addSubtitle:$("add-subtitle"),
+      dpPop:$("date-picker-pop"),dpTitle:$("dp-title"),dpWeek:$("dp-week"),dpGrid:$("dp-grid"),dpPrev:$("dp-prev"),dpNext:$("dp-next"),dpToday:$("dp-today"),dpClear:$("dp-clear"),
       navSettings:$("nav-settings"),btnSearch:$("btn-search"),btnBell:$("btn-bell"),
       themeToggle:$("theme-toggle"),themeIcon:$("theme-icon"),themeSeg:$("theme-seg"),langSeg:$("lang-seg"),
       wave:$("wave"),segment:$("segment"),avatar:$("avatar")
@@ -904,6 +1135,11 @@
     let recorder=null,stream=null,chunks=[],isRecording=false,pendingStop=false,toastTimer=null;
     let confirmResolver=null;
     let editingScheduleId=0;
+    let datePickerOpen=false;
+    let datePickerAnchor=null;
+    let datePickerTargetInput=null;
+    let datePickerTargetText=null;
+    let dateCursor=new Date(today.getFullYear(),today.getMonth(),1);
 
     const iso=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     const parseISO=(s)=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
@@ -932,8 +1168,10 @@
     const fmtWeekdayFull=(d)=>isZh()?`星期${WEEK_ZH[d.getDay()]}`:WEEKDAY_FULL_EN[d.getDay()];
     const fmtMonthTitle=(d)=>isZh()?`${d.getFullYear()}年${d.getMonth()+1}月`:`${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
     const fmtShortDate=(d)=>isZh()?`${d.getMonth()+1}月${d.getDate()}日`:`${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`;
+    const fmtPillDate=(d)=>t("dateDisplay",{m:String(d.getMonth()+1),d:String(d.getDate()),w:isZh()?`周${WEEK_ZH[d.getDay()]}`:WEEK[d.getDay()]});
     const weekHeaders=()=>isZh()?WEEK_ZH:WEEK;
     const miniHeaders=()=>isZh()?WEEK_ZH:WEEK1;
+    const validDate=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(String(s||""));
 
     function sortByTime(a,b){return (a.startTime||"99:99").localeCompare(b.startTime||"99:99");}
     function eventsOn(d){return schedules.filter(s=>s.date===iso(d)).sort(sortByTime);}
@@ -982,6 +1220,57 @@
     async function refreshByCurrentFilter(){
       if(activeFilterDate) await fetchSchedulesByDate(activeFilterDate);
       else await fetchAllSchedules();
+    }
+    function positionDatePicker(){
+      if(!datePickerAnchor) return;
+      const rect = datePickerAnchor.getBoundingClientRect();
+      const top = rect.bottom + 8;
+      const left = Math.min(window.innerWidth - 332, Math.max(12, rect.left));
+      el.dpPop.style.top = `${top}px`;
+      el.dpPop.style.left = `${left}px`;
+    }
+    function renderDatePicker(){
+      el.dpTitle.textContent=fmtMonthTitle(dateCursor);
+      const weeks=isZh()?["日","一","二","三","四","五","六"]:["S","M","T","W","T","F","S"];
+      el.dpWeek.innerHTML=weeks.map(w=>`<span>${w}</span>`).join("");
+      const y=dateCursor.getFullYear(), m=dateCursor.getMonth();
+      const start=new Date(y,m,1).getDay(), days=new Date(y,m+1,0).getDate();
+      const cells=[];
+      for(let i=0;i<start;i++){
+        const p=new Date(y,m,0-(start-i-1));
+        cells.push(`<button class="dp-day is-muted" type="button">${p.getDate()}</button>`);
+      }
+      const sel=validDate(datePickerTargetInput?.value)?parseISO(datePickerTargetInput.value):null;
+      for(let d=1; d<=days; d++){
+        const cur=new Date(y,m,d);
+        const cls=["dp-day",sameDay(cur,today)?"is-today":"",sel&&sameDay(cur,sel)?"is-selected":""].filter(Boolean).join(" ");
+        cells.push(`<button class="${cls}" data-date="${iso(cur)}" type="button">${d}</button>`);
+      }
+      while(cells.length%7!==0){
+        const idx=cells.length-(start+days)+1;
+        const n=new Date(y,m+1,idx);
+        cells.push(`<button class="dp-day is-muted" type="button">${n.getDate()}</button>`);
+      }
+      el.dpGrid.innerHTML=cells.join("");
+      el.dpToday.textContent=t("dpToday");
+      el.dpClear.textContent=t("dpClear");
+    }
+    function closeDatePicker(){
+      datePickerOpen=false;
+      el.dpPop.classList.remove("open");
+      el.dpPop.setAttribute("aria-hidden","true");
+    }
+    function openDatePicker(anchorEl,inputEl,textEl){
+      datePickerAnchor=anchorEl;
+      datePickerTargetInput=inputEl;
+      datePickerTargetText=textEl;
+      const base=validDate(inputEl.value)?parseISO(inputEl.value):(selectedDate||today);
+      dateCursor=new Date(base.getFullYear(),base.getMonth(),1);
+      renderDatePicker();
+      positionDatePicker();
+      datePickerOpen=true;
+      el.dpPop.classList.add("open");
+      el.dpPop.setAttribute("aria-hidden","false");
     }
 
     function renderHero(){
@@ -1146,6 +1435,7 @@
       return /^\d{2}:\d{2}$/.test(v);
     }
     function closeEditDialog(){
+      if(datePickerOpen && datePickerAnchor===el.editDatePill) closeDatePicker();
       el.editMask.classList.remove("open");
       el.editMask.setAttribute("aria-hidden","true");
       editingScheduleId=0;
@@ -1153,14 +1443,50 @@
     function openEditDialog(item){
       editingScheduleId = Number(item.id)||0;
       el.editTitle.textContent=t("editTitle");
+      el.editSubtitle.textContent=t("editSub");
       el.editTitleInput.value=item.title||"";
       el.editStartInput.value=item.startTime||"";
       el.editEndInput.value=item.endTime||"";
       el.editTitleInput.placeholder=t("editLabelTitle");
+      const d = parseISO(item.date||iso(today));
+      el.editDateInput.value = iso(d);
+      el.editPreviewTitle.textContent=item.title||"";
+      el.editPreviewDate.textContent=`📅 ${fmtPillDate(d)}`;
+      el.editPreviewTime.textContent=`🕘 ${item.startTime||"--:--"} - ${item.endTime||"--:--"}`;
+      el.editDateText.textContent=fmtPillDate(d);
+      el.editTitleInput.addEventListener("input",()=>{el.editPreviewTitle.textContent=el.editTitleInput.value||item.title||"";});
+      const syncEditTime=()=>{el.editPreviewTime.textContent=`🕘 ${el.editStartInput.value||"--:--"} - ${el.editEndInput.value||"--:--"}`;};
+      el.editStartInput.addEventListener("input",syncEditTime);
+      el.editEndInput.addEventListener("input",syncEditTime);
       el.editStartInput.placeholder="09:30";
       el.editEndInput.placeholder="10:30";
       el.editMask.classList.add("open");
       el.editMask.setAttribute("aria-hidden","false");
+    }
+    function closeAddDialog(){
+      closeDatePicker();
+      el.addMask.classList.remove("open");
+      el.addMask.setAttribute("aria-hidden","true");
+    }
+    function openAddDialog(){
+      el.addTitle.textContent=t("addTitle");
+      el.addSubtitle.textContent=t("addSub");
+      el.addCancel.textContent=t("addCancel");
+      el.addSave.textContent=t("addSave");
+      el.addNoteToggle.textContent=t("addNotesToggle");
+
+      const d = selectedDate || today;
+      el.addDateInput.value = iso(d);
+      el.addDateText.textContent=fmtPillDate(d);
+      el.addTitleInput.value = "";
+      el.addStartInput.value = "";
+      el.addEndInput.value = "";
+      el.addDescInput.value = "";
+      el.addTitleInput.placeholder=t("titlePlaceholder");
+      el.addDescInput.placeholder=t("notePlaceholder");
+      el.addNoteWrap.style.display="none";
+      el.addMask.classList.add("open");
+      el.addMask.setAttribute("aria-hidden","false");
     }
 
     /* ---- theme ---- */
@@ -1186,6 +1512,19 @@
       });
       el.segment.querySelectorAll(".seg-btn").forEach(b=>{b.textContent=t("view."+b.dataset.view);});
       el.langSeg.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.lang===lang));
+      el.editTitle.textContent=t("editTitle");
+      el.editCancel.textContent=t("editCancel");
+      el.editSave.textContent=t("editSave");
+      el.addTitle.textContent=t("addTitle");
+      el.addCancel.textContent=t("addCancel");
+      el.addSave.textContent=t("addSave");
+      if(el.addSubtitle) el.addSubtitle.textContent=t("addSub");
+      if(el.editSubtitle) el.editSubtitle.textContent=t("editSub");
+      if(el.addNoteToggle) el.addNoteToggle.textContent=t("addNotesToggle");
+      if(el.addTitleInput) el.addTitleInput.placeholder=t("titlePlaceholder");
+      if(el.editTitleInput) el.editTitleInput.placeholder=t("titlePlaceholder");
+      if(el.addDescInput) el.addDescInput.placeholder=t("notePlaceholder");
+      if(datePickerOpen) renderDatePicker();
       renderAll();
     }
     function setLang(next){
@@ -1430,6 +1769,21 @@
       el.editClose.addEventListener("click",closeEditDialog);
       el.editCancel.addEventListener("click",closeEditDialog);
       el.editMask.addEventListener("click",(ev)=>{ if(ev.target===el.editMask) closeEditDialog(); });
+      el.editDatePill.addEventListener("click",(ev)=>{
+        ev.preventDefault();
+        ev.stopPropagation();
+        if(datePickerOpen && datePickerAnchor===el.editDatePill){
+          closeDatePicker();
+          return;
+        }
+        openDatePicker(el.editDatePill, el.editDateInput, el.editDateText);
+      });
+      el.editDateInput.addEventListener("change",()=>{
+        if(!el.editDateInput.value) return;
+        const d = parseISO(el.editDateInput.value);
+        el.editDateText.textContent=fmtPillDate(d);
+        el.editPreviewDate.textContent=`📅 ${fmtPillDate(d)}`;
+      });
       el.editSave.addEventListener("click", async ()=>{
         if(!editingScheduleId) return;
         const title = (el.editTitleInput.value||"").trim();
@@ -1448,6 +1802,98 @@
           showToast(String(err));
         }
       });
+      el.addClose.addEventListener("click",closeAddDialog);
+      el.addCancel.addEventListener("click",closeAddDialog);
+      el.addMask.addEventListener("click",(ev)=>{ if(ev.target===el.addMask) closeAddDialog(); });
+      el.addDatePill.addEventListener("click",(ev)=>{
+        ev.preventDefault();
+        ev.stopPropagation();
+        if(datePickerOpen && datePickerAnchor===el.addDatePill){
+          closeDatePicker();
+          return;
+        }
+        openDatePicker(el.addDatePill, el.addDateInput, el.addDateText);
+      });
+      el.addDateInput.addEventListener("change",()=>{
+        if(!el.addDateInput.value) return;
+        el.addDateText.textContent=fmtPillDate(parseISO(el.addDateInput.value));
+      });
+      el.dpPrev.addEventListener("click",(ev)=>{
+        ev.preventDefault();
+        dateCursor.setMonth(dateCursor.getMonth()-1);
+        renderDatePicker();
+      });
+      el.dpNext.addEventListener("click",(ev)=>{
+        ev.preventDefault();
+        dateCursor.setMonth(dateCursor.getMonth()+1);
+        renderDatePicker();
+      });
+      el.dpGrid.addEventListener("click",(ev)=>{
+        const btn=ev.target.closest(".dp-day[data-date]");
+        if(!btn || !datePickerTargetInput) return;
+        const picked=btn.dataset.date;
+        datePickerTargetInput.value=picked;
+        if(datePickerTargetText) datePickerTargetText.textContent=fmtPillDate(parseISO(picked));
+        datePickerTargetInput.dispatchEvent(new Event("change"));
+        closeDatePicker();
+      });
+      el.dpToday.addEventListener("click",(ev)=>{
+        ev.preventDefault();
+        if(!datePickerTargetInput) return;
+        const picked=iso(today);
+        datePickerTargetInput.value=picked;
+        if(datePickerTargetText) datePickerTargetText.textContent=fmtPillDate(today);
+        datePickerTargetInput.dispatchEvent(new Event("change"));
+        closeDatePicker();
+      });
+      el.dpClear.addEventListener("click",(ev)=>{
+        ev.preventDefault();
+        if(!datePickerTargetInput) return;
+        datePickerTargetInput.value="";
+        if(datePickerTargetText){
+          const ref=selectedDate||today;
+          datePickerTargetText.textContent=fmtPillDate(ref);
+        }
+        closeDatePicker();
+      });
+      window.addEventListener("resize",()=>{ if(datePickerOpen) positionDatePicker(); });
+      document.addEventListener("scroll",()=>{ if(datePickerOpen) positionDatePicker(); },true);
+      document.addEventListener("click",(ev)=>{
+        if(!datePickerOpen) return;
+        if(el.dpPop.contains(ev.target)) return;
+        if(datePickerAnchor && datePickerAnchor.contains(ev.target)) return;
+        closeDatePicker();
+      });
+      el.addNoteToggle.addEventListener("click",()=>{
+        const open = el.addNoteWrap.style.display!=="none";
+        el.addNoteWrap.style.display = open ? "none" : "block";
+      });
+      el.addSave.addEventListener("click", async ()=>{
+        const date = (el.addDateInput.value||"").trim();
+        const title = (el.addTitleInput.value||"").trim();
+        const startTime = (el.addStartInput.value||"").trim();
+        const endTime = (el.addEndInput.value||"").trim();
+        const desc = (el.addDescInput.value||"").trim();
+        if(!date){ showToast(t("addDateRequired")); return; }
+        if(!title){ showToast(t("editTitleRequired")); return; }
+        if(startTime && !isValidHHMM(startTime)){ showToast(t("editInvalidTime")); return; }
+        if(endTime && !isValidHHMM(endTime)){ showToast(t("editInvalidTime")); return; }
+        try{
+          await createScheduleDB({title,date,startTime,endTime,duration:0,desc:desc||title});
+          closeAddDialog();
+          await refreshByCurrentFilter();
+          selectedDate=parseISO(date);
+          monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
+          renderAll();
+          showToast(t("addSuccess",{title}));
+        }catch(err){
+          showToast(String(err));
+        }
+      });
+      document.addEventListener("click",(ev)=>{
+        const btn=ev.target.closest("#quick-add");
+        if(btn){ ev.preventDefault(); openAddDialog(); }
+      });
 
       el.themeToggle.addEventListener("click",()=>{
         const next=document.documentElement.dataset.theme==="dark"?"light":"dark";
@@ -1463,6 +1909,11 @@
       });
 
       document.addEventListener("keydown",(ev)=>{
+        if(ev.key==="Escape" && el.addMask.classList.contains("open")){
+          if(datePickerOpen){ closeDatePicker(); return; }
+          closeAddDialog();
+          return;
+        }
         if(ev.key==="Escape" && el.editMask.classList.contains("open")){
           closeEditDialog();
           return;

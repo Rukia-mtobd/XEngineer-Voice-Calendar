@@ -286,8 +286,15 @@
     .tev{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;transition:background .2s var(--ease)}
     .tev:hover{background:var(--bg)}
     .tev .bar{width:3px;align-self:stretch;border-radius:999px;background:var(--accent);min-height:30px}
+    .tev-main{flex:1;min-width:0}
     .tev .tev-t{font-size:13px;font-weight:600;letter-spacing:-.01em}
     .tev .tev-s{font-size:12px;color:var(--muted);margin-top:1px}
+    .tev-del{
+      width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:var(--muted);
+      transition:background .2s var(--ease),color .2s var(--ease);
+    }
+    .tev-del:hover{background:var(--hairline);color:#ff3b30}
+    .tev-del svg{width:14px;height:14px}
 
     /* AI insight */
     .insight-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -407,6 +414,43 @@
     .seg-mini{display:inline-flex;background:var(--bg);border-radius:999px;padding:2px;gap:2px;box-shadow:inset 0 0 0 1px var(--hairline-2)}
     .seg-mini button{padding:5px 13px;border-radius:999px;font-size:12px;font-weight:500;color:var(--muted);transition:color .2s var(--ease)}
     .seg-mini button.active{background:var(--card);color:var(--accent);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+    /* ---------- Delete confirm dialog ---------- */
+    .confirm-mask{
+      position:fixed;inset:0;z-index:90;
+      background:rgba(29,29,31,.2);
+      backdrop-filter:saturate(180%) blur(8px);
+      opacity:0;pointer-events:none;
+      transition:opacity .25s var(--ease);
+      display:grid;place-items:center;
+      padding:20px;
+    }
+    .confirm-mask.open{opacity:1;pointer-events:auto}
+    .confirm-dialog{
+      width:min(420px,92vw);
+      border:1px solid var(--hairline);
+      border-radius:18px;
+      background:rgba(255,255,255,.9);
+      backdrop-filter:saturate(180%) blur(20px);
+      box-shadow:var(--shadow-float);
+      padding:18px 18px 14px;
+      transform:translateY(8px) scale(.98);
+      transition:transform .25s var(--ease),opacity .25s var(--ease);
+    }
+    .confirm-mask.open .confirm-dialog{transform:translateY(0) scale(1)}
+    [data-theme="dark"] .confirm-dialog{background:rgba(22,22,23,.92)}
+    .confirm-title{font-size:16px;font-weight:600;letter-spacing:-.02em}
+    .confirm-text{margin-top:8px;font-size:14px;line-height:1.5;color:var(--muted)}
+    .confirm-actions{margin-top:16px;display:flex;justify-content:flex-end;gap:8px}
+    .confirm-btn{
+      height:34px;padding:0 14px;border-radius:10px;font-size:13px;font-weight:600;
+      transition:background .2s var(--ease),transform .2s var(--ease),color .2s var(--ease);
+    }
+    .confirm-btn.cancel{background:var(--bg);color:var(--muted)}
+    .confirm-btn.cancel:hover{background:var(--hairline);color:var(--ink)}
+    .confirm-btn.ok{background:var(--accent);color:#fff}
+    .confirm-btn.ok:hover{background:var(--accent-focus)}
+    .confirm-btn:active{transform:scale(.98)}
 
     /* fade-up entrance */
     .fade-up{opacity:0;transform:translateY(8px);animation:fadeUp .45s var(--ease) forwards}
@@ -568,6 +612,17 @@
 
   <div class="toast" id="toast"></div>
 
+  <div class="confirm-mask" id="confirm-mask" aria-hidden="true">
+    <div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+      <div class="confirm-title" id="confirm-title">确认删除</div>
+      <div class="confirm-text" id="confirm-text">确认删除该日程吗？</div>
+      <div class="confirm-actions">
+        <button class="confirm-btn cancel" id="confirm-cancel">取消</button>
+        <button class="confirm-btn ok" id="confirm-ok">确认</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings sheet -->
   <div class="mask" id="mask"></div>
   <aside class="sheet" id="sheet" aria-hidden="true">
@@ -644,6 +699,14 @@
         noEvents:"今日暂无日程",
         freeTime:"尽情享受空闲时光",
         addEvent:"添加日程",
+        deleted:"已删除",
+        deleteFail:"删除失败",
+        confirmTitle:"确认删除",
+        confirmOk:"确认",
+        confirmCancel:"取消",
+        confirmDeleteOne:"确认删除该日程吗？",
+        confirmDeleteByDateTitle:"确认删除 {{date}} 的「{{title}}」吗？",
+        confirmDeleteByDateAll:"确认删除 {{date}} 的全部日程吗？",
         insightOk:"无冲突 · 完美的一天！",
         insightOkBody:"你的下午很空闲，适合专注工作或做规划。",
         insightBusy:"已安排 {{n}} 项 · {{dur}}",
@@ -651,7 +714,7 @@
         flexible:"待定",
         nothing:"暂时没有即将到来的安排。",
         view:{day:"日",week:"周",month:"月"},
-        toast:{thinking:"思考中…",transcribing:"识别中…",listening:"聆听中…",empty:"音频为空",noCatch:"没听清，请再说一次",unsupported:"当前环境不支持录音",added:"已添加：{{title}}",noNotif:"暂无新通知",allSoon:"全部事件视图开发中",saved:"设置已保存",keyRequired:"请输入 API Key"}
+        toast:{thinking:"思考中…",transcribing:"识别中…",listening:"聆听中…",empty:"音频为空",noCatch:"没听清，请再说一次",unsupported:"当前环境不支持录音",added:"已添加：{{title}}",deleted:"已删除{{n}}条日程",noDeleteMatch:"没有匹配到可删除的日程",deleteCanceled:"已取消删除",noNotif:"暂无新通知",allSoon:"全部事件视图开发中",saved:"设置已保存",keyRequired:"请输入 API Key"}
       },
       "en-US":{
         tagline:"Your schedule, beautifully organized.",
@@ -682,6 +745,14 @@
         noEvents:"No events today",
         freeTime:"Enjoy your free time",
         addEvent:"Add Event",
+        deleted:"Deleted",
+        deleteFail:"Delete failed",
+        confirmTitle:"Confirm deletion",
+        confirmOk:"Delete",
+        confirmCancel:"Cancel",
+        confirmDeleteOne:"Are you sure you want to delete this schedule?",
+        confirmDeleteByDateTitle:"Delete \"{{title}}\" on {{date}}?",
+        confirmDeleteByDateAll:"Delete all schedules on {{date}}?",
         insightOk:"No conflicts · Great day!",
         insightOkBody:"Your afternoon is wide open. Good time for deep work or planning.",
         insightBusy:"{{n}} planned · {{dur}}",
@@ -689,7 +760,7 @@
         flexible:"flexible",
         nothing:"Nothing on the horizon yet.",
         view:{day:"Day",week:"Week",month:"Month"},
-        toast:{thinking:"Thinking…",transcribing:"Transcribing…",listening:"Listening…",empty:"Empty audio",noCatch:"Didn’t catch that",unsupported:"Recording unsupported",added:"Added: {{title}}",noNotif:"No new notifications",allSoon:"All events view coming soon",saved:"Settings saved",keyRequired:"API Key is required"}
+        toast:{thinking:"Thinking…",transcribing:"Transcribing…",listening:"Listening…",empty:"Empty audio",noCatch:"Didn’t catch that",unsupported:"Recording unsupported",added:"Added: {{title}}",deleted:"Deleted {{n}} schedule(s)",noDeleteMatch:"No matching schedules to delete",deleteCanceled:"Delete cancelled",noNotif:"No new notifications",allSoon:"All events view coming soon",saved:"Settings saved",keyRequired:"API Key is required"}
       }
     };
 
@@ -705,6 +776,10 @@
     const createScheduleDB = (item) => invokeBackend("CreateSchedule", item);
     const listSchedulesDB = () => invokeBackend("ListSchedules");
     const listSchedulesByDateDB = (date) => invokeBackend("ListSchedulesByDate", date);
+    const deleteScheduleByIDDB = (id) => invokeBackend("DeleteScheduleByID", id);
+    const deleteScheduleByDateTitleDB = (date,title) => invokeBackend("DeleteScheduleByDateAndTitle", date, title);
+    const deleteSchedulesByDateDB = (date) => invokeBackend("DeleteSchedulesByDate", date);
+    const parseDeleteIntentDB = (text) => invokeBackend("ParseDeleteIntent", text);
 
     const $=(id)=>document.getElementById(id);
     const el={
@@ -718,6 +793,7 @@
       cmd:$("cmd"),cmdInput:$("cmd-input"),micBtn:$("mic-btn"),addBtn:$("add-btn"),
       toast:$("toast"),mask:$("mask"),sheet:$("sheet"),sheetClose:$("sheet-close"),
       apiKey:$("api-key"),btnSave:$("btn-save"),
+      confirmMask:$("confirm-mask"),confirmTitle:$("confirm-title"),confirmText:$("confirm-text"),confirmOk:$("confirm-ok"),confirmCancel:$("confirm-cancel"),
       navSettings:$("nav-settings"),btnSearch:$("btn-search"),btnBell:$("btn-bell"),
       themeToggle:$("theme-toggle"),themeIcon:$("theme-icon"),themeSeg:$("theme-seg"),langSeg:$("lang-seg"),
       wave:$("wave"),segment:$("segment"),avatar:$("avatar")
@@ -730,6 +806,7 @@
     const schedules=[];
     let activeFilterDate="";
     let recorder=null,stream=null,chunks=[],isRecording=false,pendingStop=false,toastTimer=null;
+    let confirmResolver=null;
 
     const iso=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     const parseISO=(s)=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
@@ -782,6 +859,7 @@
     }
     function toScheduleFromDB(raw){
       return {
+        id: Number(raw?.id)||0,
         title:(raw?.title||"").trim() || "Voice Event",
         date:(raw?.date||"").trim() || iso(today),
         startTime:(raw?.startTime||"").trim(),
@@ -803,6 +881,10 @@
       const rows = await listSchedulesByDateDB(date);
       const normalized = (Array.isArray(rows)?rows:[]).map(toScheduleFromDB);
       resetSchedules(normalized);
+    }
+    async function refreshByCurrentFilter(){
+      if(activeFilterDate) await fetchSchedulesByDate(activeFilterDate);
+      else await fetchAllSchedules();
     }
 
     function renderHero(){
@@ -863,10 +945,39 @@
           ${addBtn}`;
       }else{
         el.todayBody.innerHTML=`<div class="today-events">${list.map(it=>`
-          <div class="tev"><span class="bar" style="background:${it.color}"></span><div><div class="tev-t">${it.title}</div><div class="tev-s">${fmtTimeRange(it)}${durationLabel(it.duration)?" · "+durationLabel(it.duration):""}</div></div></div>`).join("")}</div>
+          <div class="tev">
+            <span class="bar" style="background:${it.color}"></span>
+            <div class="tev-main">
+              <div class="tev-t">${it.title}</div>
+              <div class="tev-s">${fmtTimeRange(it)}${durationLabel(it.duration)?" · "+durationLabel(it.duration):""}</div>
+            </div>
+            <button class="tev-del" data-del-id="${it.id||0}" data-del-date="${it.date}" data-del-title="${it.title}" title="${t("deleted")}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M7 6l1 14h8l1-14M10 11v6M14 11v6"/></svg>
+            </button>
+          </div>`).join("")}</div>
           ${addBtn}`;
       }
       const qa=$("quick-add");if(qa)qa.addEventListener("click",()=>el.cmdInput.focus());
+      el.todayBody.querySelectorAll(".tev-del").forEach((btn)=>{
+        btn.addEventListener("click", async (ev)=>{
+          ev.stopPropagation();
+          const id = Number(btn.dataset.delId)||0;
+          const date = (btn.dataset.delDate||"").trim();
+          const title = (btn.dataset.delTitle||"").trim();
+          try{
+            if(id>0 && !(await confirmDelete(t("confirmDeleteOne")))) return;
+            if(!(id>0) && date && title && !(await confirmDelete(t("confirmDeleteByDateTitle",{date,title})))) return;
+            if(id>0) await deleteScheduleByIDDB(id);
+            else if(date && title) await deleteScheduleByDateTitleDB(date,title);
+            else return;
+            await refreshByCurrentFilter();
+            renderAll();
+            showToast(t("toast.deleted",{n:"1"}));
+          }catch(err){
+            showToast(`${t("deleteFail")}: ${String(err)}`);
+          }
+        });
+      });
     }
 
     function renderInsight(){
@@ -901,6 +1012,27 @@
     function renderAll(){renderHero();renderMain();renderMini();renderTodayPanel();renderInsight();renderUpcoming();}
 
     function showToast(text){clearTimeout(toastTimer);el.toast.textContent=text;el.toast.classList.add("show");toastTimer=setTimeout(()=>el.toast.classList.remove("show"),2200);}
+    function closeConfirmDialog(result){
+      el.confirmMask.classList.remove("open");
+      el.confirmMask.setAttribute("aria-hidden","true");
+      const resolver = confirmResolver;
+      confirmResolver = null;
+      if(resolver) resolver(result);
+    }
+    function openConfirmDialog(message){
+      el.confirmTitle.textContent=t("confirmTitle");
+      el.confirmText.textContent=message;
+      el.confirmOk.textContent=t("confirmOk");
+      el.confirmCancel.textContent=t("confirmCancel");
+      el.confirmMask.classList.add("open");
+      el.confirmMask.setAttribute("aria-hidden","false");
+      return new Promise((resolve)=>{ confirmResolver = resolve; });
+    }
+    async function confirmDelete(message){
+      const ok = await openConfirmDialog(message);
+      if(!ok) showToast(t("toast.deleteCanceled"));
+      return ok;
+    }
 
     /* ---- theme ---- */
     function applyTheme(theme){
@@ -971,12 +1103,49 @@
       el.cmdInput.value="";
     }
 
+    async function tryDeleteByVoice(text){
+      let intent=null;
+      try{
+        intent = await parseDeleteIntentDB(text);
+      }catch(_){
+        return false;
+      }
+      if(!intent || intent.action!=="delete") return false;
+
+      let affected = 0;
+      try{
+        if(Number(intent.id)>0){
+          if(!(await confirmDelete(t("confirmDeleteOne")))) return true;
+          await deleteScheduleByIDDB(Number(intent.id));
+          affected = 1;
+        }else if((intent.date||"").trim() && (intent.title||"").trim()){
+          if(!(await confirmDelete(t("confirmDeleteByDateTitle",{date:intent.date,title:intent.title})))) return true;
+          affected = Number(await deleteScheduleByDateTitleDB(intent.date, intent.title))||0;
+        }else if((intent.date||"").trim()){
+          if(!(await confirmDelete(t("confirmDeleteByDateAll",{date:intent.date})))) return true;
+          affected = Number(await deleteSchedulesByDateDB(intent.date))||0;
+        }else{
+          showToast(t("toast.noDeleteMatch"));
+          return true;
+        }
+        await refreshByCurrentFilter();
+        renderAll();
+        showToast(affected>0 ? t("toast.deleted",{n:String(affected)}) : t("toast.noDeleteMatch"));
+      }catch(err){
+        showToast(`${t("deleteFail")}: ${String(err)}`);
+      }
+      return true;
+    }
+
     async function recognize(blob,mime){
       showToast(t("toast.transcribing"));
       try{
         const b64=await blobToBase64(blob);
         const text=await RecognizeSpeech(b64,mime,mimeToFormat(mime));
-        if(text&&text.trim())await parseAndAdd(text);
+        if(text&&text.trim()){
+          const handledDelete = await tryDeleteByVoice(text.trim());
+          if(!handledDelete) await parseAndAdd(text);
+        }
         else showToast(t("toast.noCatch"));
       }catch(err){showToast(String(err));}
     }
@@ -1044,9 +1213,16 @@
       el.micBtn.addEventListener("click",()=>{isRecording?stopRecording():startRecording();});
       el.addBtn.addEventListener("click",()=>{
         const v=el.cmdInput.value.trim();
-        if(v)parseAndAdd(v);else startRecording();
+        if(v){
+          tryDeleteByVoice(v).then((handled)=>{ if(!handled) return parseAndAdd(v); });
+        }else startRecording();
       });
-      el.cmdInput.addEventListener("keydown",(ev)=>{if(ev.key==="Enter")parseAndAdd(el.cmdInput.value);});
+      el.cmdInput.addEventListener("keydown",(ev)=>{
+        if(ev.key!=="Enter") return;
+        const v = el.cmdInput.value.trim();
+        if(!v) return;
+        tryDeleteByVoice(v).then((handled)=>{ if(!handled) return parseAndAdd(v); });
+      });
 
       el.navSettings.addEventListener("click",openSheet);
       el.sheetClose.addEventListener("click",closeSheet);
@@ -1055,6 +1231,9 @@
       el.btnSearch.addEventListener("click",()=>el.cmdInput.focus());
       el.btnBell.addEventListener("click",()=>showToast(t("toast.noNotif")));
       el.viewAll.addEventListener("click",()=>showToast(t("toast.allSoon")));
+      el.confirmCancel.addEventListener("click",()=>closeConfirmDialog(false));
+      el.confirmOk.addEventListener("click",()=>closeConfirmDialog(true));
+      el.confirmMask.addEventListener("click",(ev)=>{ if(ev.target===el.confirmMask) closeConfirmDialog(false); });
 
       el.themeToggle.addEventListener("click",()=>{
         const next=document.documentElement.dataset.theme==="dark"?"light":"dark";
@@ -1070,6 +1249,10 @@
       });
 
       document.addEventListener("keydown",(ev)=>{
+        if(ev.key==="Escape" && el.confirmMask.classList.contains("open")){
+          closeConfirmDialog(false);
+          return;
+        }
         if(document.activeElement===el.cmdInput)return;
         if(ev.key==="ArrowLeft"){selectedDate.setDate(selectedDate.getDate()-1);monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);renderAll();}
         if(ev.key==="ArrowRight"){selectedDate.setDate(selectedDate.getDate()+1);monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);renderAll();}

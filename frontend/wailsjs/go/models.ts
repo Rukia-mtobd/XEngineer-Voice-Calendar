@@ -1,5 +1,23 @@
 export namespace llm {
 	
+	export class DeleteIntent {
+	    action: string;
+	    id: number;
+	    date: string;
+	    title: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DeleteIntent(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.action = source["action"];
+	        this.id = source["id"];
+	        this.date = source["date"];
+	        this.title = source["title"];
+	    }
+	}
 	export class ParsedSchedule {
 	    title: string;
 	    date: string;

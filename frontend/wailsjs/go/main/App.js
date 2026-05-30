@@ -6,6 +6,18 @@ export function CreateSchedule(arg1) {
   return window['go']['main']['App']['CreateSchedule'](arg1);
 }
 
+export function DeleteScheduleByDateAndTitle(arg1, arg2) {
+  return window['go']['main']['App']['DeleteScheduleByDateAndTitle'](arg1, arg2);
+}
+
+export function DeleteScheduleByID(arg1) {
+  return window['go']['main']['App']['DeleteScheduleByID'](arg1);
+}
+
+export function DeleteSchedulesByDate(arg1) {
+  return window['go']['main']['App']['DeleteSchedulesByDate'](arg1);
+}
+
 export function ListSchedules() {
   return window['go']['main']['App']['ListSchedules']();
 }
@@ -16,6 +28,10 @@ export function ListSchedulesByDate(arg1) {
 
 export function LoadApiKey() {
   return window['go']['main']['App']['LoadApiKey']();
+}
+
+export function ParseDeleteIntent(arg1) {
+  return window['go']['main']['App']['ParseDeleteIntent'](arg1);
 }
 
 export function ParseSchedule(arg1) {

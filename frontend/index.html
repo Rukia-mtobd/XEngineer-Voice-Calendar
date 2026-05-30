@@ -701,6 +701,10 @@
       return String(raw??fallback??path).replace(/\{\{\s*(\w+)\s*\}\}/g,(_,k)=>vars[k]??"");
     };
     const isZh=()=>lang==="zh-CN";
+    const invokeBackend = (method, ...args) => window?.go?.main?.App?.[method]?.(...args);
+    const createScheduleDB = (item) => invokeBackend("CreateSchedule", item);
+    const listSchedulesDB = () => invokeBackend("ListSchedules");
+    const listSchedulesByDateDB = (date) => invokeBackend("ListSchedulesByDate", date);
 
     const $=(id)=>document.getElementById(id);
     const el={
@@ -724,6 +728,7 @@
     let selectedDate=new Date(today);
     let currentView="month";
     const schedules=[];
+    let activeFilterDate="";
     let recorder=null,stream=null,chunks=[],isRecording=false,pendingStop=false,toastTimer=null;
 
     const iso=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
@@ -774,6 +779,30 @@
       }
       it.color=DOTS[schedules.length%DOTS.length];
       return it;
+    }
+    function toScheduleFromDB(raw){
+      return {
+        title:(raw?.title||"").trim() || "Voice Event",
+        date:(raw?.date||"").trim() || iso(today),
+        startTime:(raw?.startTime||"").trim(),
+        endTime:(raw?.endTime||"").trim(),
+        duration:Number(raw?.duration)||0,
+        desc:(raw?.desc||"").trim(),
+        color:DOTS[schedules.length%DOTS.length]
+      };
+    }
+    function resetSchedules(items){
+      schedules.splice(0, schedules.length, ...items.map((it,idx)=>({...it,color:DOTS[idx%DOTS.length]})));
+    }
+    async function fetchAllSchedules(){
+      const rows = await listSchedulesDB();
+      const normalized = (Array.isArray(rows)?rows:[]).map(toScheduleFromDB);
+      resetSchedules(normalized);
+    }
+    async function fetchSchedulesByDate(date){
+      const rows = await listSchedulesByDateDB(date);
+      const normalized = (Array.isArray(rows)?rows:[]).map(toScheduleFromDB);
+      resetSchedules(normalized);
     }
 
     function renderHero(){
@@ -916,7 +945,25 @@
         parsed=(Array.isArray(result)?result:[result]).map(x=>normalize(x,value)).filter(x=>x.title);
       }catch(err){showToast(String(err));}
       if(!parsed.length)parsed=[normalize({title:value,desc:value},value)];
-      parsed.slice().reverse().forEach(it=>schedules.unshift(it));
+      for (const it of parsed) {
+        try {
+          await createScheduleDB({
+            title: it.title,
+            date: it.date,
+            startTime: it.startTime,
+            endTime: it.endTime,
+            duration: it.duration,
+            desc: it.desc
+          });
+        } catch (err) {
+          showToast(String(err));
+        }
+      }
+      if(activeFilterDate){
+        await fetchSchedulesByDate(activeFilterDate);
+      }else{
+        await fetchAllSchedules();
+      }
       selectedDate=parseISO(parsed[0].date);
       monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
       renderAll();
@@ -975,13 +1022,15 @@
         const b=ev.target.closest(".cell");if(!b)return;
         selectedDate=parseISO(b.dataset.date);
         monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
-        renderAll();
+        activeFilterDate=b.dataset.date||"";
+        fetchSchedulesByDate(activeFilterDate).then(renderAll).catch((err)=>showToast(String(err)));
       });
       el.miniGrid.addEventListener("click",(ev)=>{
         const b=ev.target.closest(".mini-cell");if(!b)return;
         selectedDate=parseISO(b.dataset.date);
         monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
-        renderAll();
+        activeFilterDate=b.dataset.date||"";
+        fetchSchedulesByDate(activeFilterDate).then(renderAll).catch((err)=>showToast(String(err)));
       });
       el.upList.addEventListener("click",(ev)=>{
         const b=ev.target.closest(".up-item");if(!b)return;
@@ -1042,6 +1091,11 @@
       applyTheme(localStorage.getItem("voiceflow.theme")==="dark"?"dark":"light");
       bind();
       try{const key=await LoadApiKey();if(key)el.apiKey.value=key;}catch(_){}
+      try{
+        await fetchAllSchedules();
+      }catch(err){
+        showToast(String(err));
+      }
       applyI18n();
     }
     bootstrap();

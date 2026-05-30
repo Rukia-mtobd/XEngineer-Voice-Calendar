@@ -94,6 +94,18 @@ func (a *App) ParseSchedule(text string) ([]llm.ParsedSchedule, error) {
 	return a.llm.ParseSchedule(apiKey, text, time.Now())
 }
 
+// ParseDeleteIntent 调用大模型识别删除意图与匹配条件。
+func (a *App) ParseDeleteIntent(text string) (llm.DeleteIntent, error) {
+	apiKey, err := config.LoadApiKey()
+	if err != nil {
+		return llm.DeleteIntent{}, err
+	}
+	if strings.TrimSpace(apiKey) == "" {
+		return llm.DeleteIntent{}, errors.New("请先配置并保存阿里云 API Key")
+	}
+	return a.llm.ParseDeleteIntent(apiKey, text, time.Now())
+}
+
 // CreateSchedule 新增一条日程到 SQLite。
 func (a *App) CreateSchedule(item llm.ParsedSchedule) (storage.ScheduleRecord, error) {
 	rec := storage.ScheduleRecord{
@@ -125,4 +137,34 @@ func (a *App) ListSchedulesByDate(date string) ([]storage.ScheduleRecord, error)
 		return nil, errors.New("date 不能为空")
 	}
 	return a.store.ListSchedulesByDate(date)
+}
+
+// DeleteScheduleByID 按 ID 删除单条日程。
+func (a *App) DeleteScheduleByID(id uint) error {
+	if id == 0 {
+		return errors.New("id 不能为空")
+	}
+	return a.store.DeleteScheduleByID(id)
+}
+
+// DeleteScheduleByDateAndTitle 按日期+标题删除日程。
+func (a *App) DeleteScheduleByDateAndTitle(date, title string) (int64, error) {
+	date = strings.TrimSpace(date)
+	title = strings.TrimSpace(title)
+	if date == "" {
+		return 0, errors.New("date 不能为空")
+	}
+	if title == "" {
+		return 0, errors.New("title 不能为空")
+	}
+	return a.store.DeleteScheduleByDateAndTitle(date, title)
+}
+
+// DeleteSchedulesByDate 按日期删除全部日程。
+func (a *App) DeleteSchedulesByDate(date string) (int64, error) {
+	date = strings.TrimSpace(date)
+	if date == "" {
+		return 0, errors.New("date 不能为空")
+	}
+	return a.store.DeleteSchedulesByDate(date)
 }

@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/glebarez/sqlite"
@@ -83,4 +84,18 @@ func (s *Store) ListSchedulesByDate(date string) ([]ScheduleRecord, error) {
 		return nil, err
 	}
 	return rows, nil
+}
+
+func (s *Store) DeleteScheduleByID(id uint) error {
+	return s.db.Delete(&ScheduleRecord{}, id).Error
+}
+
+func (s *Store) DeleteScheduleByDateAndTitle(date, title string) (int64, error) {
+	res := s.db.Where("date = ? AND title = ?", strings.TrimSpace(date), strings.TrimSpace(title)).Delete(&ScheduleRecord{})
+	return res.RowsAffected, res.Error
+}
+
+func (s *Store) DeleteSchedulesByDate(date string) (int64, error) {
+	res := s.db.Where("date = ?", strings.TrimSpace(date)).Delete(&ScheduleRecord{})
+	return res.RowsAffected, res.Error
 }

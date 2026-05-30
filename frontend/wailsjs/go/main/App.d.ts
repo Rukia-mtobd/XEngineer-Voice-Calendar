@@ -5,11 +5,19 @@ import {storage} from '../models';
 
 export function CreateSchedule(arg1:llm.ParsedSchedule):Promise<storage.ScheduleRecord>;
 
+export function DeleteScheduleByDateAndTitle(arg1:string,arg2:string):Promise<number>;
+
+export function DeleteScheduleByID(arg1:number):Promise<void>;
+
+export function DeleteSchedulesByDate(arg1:string):Promise<number>;
+
 export function ListSchedules():Promise<Array<storage.ScheduleRecord>>;
 
 export function ListSchedulesByDate(arg1:string):Promise<Array<storage.ScheduleRecord>>;
 
 export function LoadApiKey():Promise<string>;
+
+export function ParseDeleteIntent(arg1:string):Promise<llm.DeleteIntent>;
 
 export function ParseSchedule(arg1:string):Promise<Array<llm.ParsedSchedule>>;
 

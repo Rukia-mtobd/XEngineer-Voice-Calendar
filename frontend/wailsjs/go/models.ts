@@ -67,6 +67,31 @@ export namespace llm {
 
 }
 
+export namespace main {
+	
+	export class ExportScheduleItem {
+	    date: string;
+	    startTime: string;
+	    endTime: string;
+	    title: string;
+	    status: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ExportScheduleItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.date = source["date"];
+	        this.startTime = source["startTime"];
+	        this.endTime = source["endTime"];
+	        this.title = source["title"];
+	        this.status = source["status"];
+	    }
+	}
+
+}
+
 export namespace storage {
 	
 	export class ScheduleRecord {

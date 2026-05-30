@@ -22,6 +22,10 @@ export function ExportSchedulesCSV(arg1) {
   return window['go']['main']['App']['ExportSchedulesCSV'](arg1);
 }
 
+export function ListImportantSchedules() {
+  return window['go']['main']['App']['ListImportantSchedules']();
+}
+
 export function ListScheduledDatesByMonth(arg1) {
   return window['go']['main']['App']['ListScheduledDatesByMonth'](arg1);
 }
@@ -60,6 +64,10 @@ export function RecognizeSpeech(arg1, arg2, arg3) {
 
 export function SaveApiKey(arg1) {
   return window['go']['main']['App']['SaveApiKey'](arg1);
+}
+
+export function SetScheduleImportant(arg1, arg2) {
+  return window['go']['main']['App']['SetScheduleImportant'](arg1, arg2);
 }
 
 export function UpdateScheduleByID(arg1, arg2, arg3, arg4) {

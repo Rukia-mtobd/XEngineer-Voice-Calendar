@@ -166,6 +166,11 @@ func (a *App) ListSchedulesByDate(date string) ([]storage.ScheduleRecord, error)
 	return a.store.ListSchedulesByDate(date)
 }
 
+// ListImportantSchedules 查询全部重要日程。
+func (a *App) ListImportantSchedules() ([]storage.ScheduleRecord, error) {
+	return a.store.ListImportantSchedules()
+}
+
 // ListScheduledDatesByMonth 查询某月有日程的日期（YYYY-MM-DD）。
 func (a *App) ListScheduledDatesByMonth(month string) ([]string, error) {
 	month = strings.TrimSpace(month)
@@ -224,6 +229,14 @@ func (a *App) UpdateScheduleByID(id uint, title, startTime, endTime string) (sto
 		return storage.ScheduleRecord{}, errors.New("endTime 格式必须为 HH:mm")
 	}
 	return a.store.UpdateScheduleByID(id, title, startTime, endTime)
+}
+
+// SetScheduleImportant 设置某条日程是否为重要日程。
+func (a *App) SetScheduleImportant(id uint, important bool) (storage.ScheduleRecord, error) {
+	if id == 0 {
+		return storage.ScheduleRecord{}, errors.New("id 不能为空")
+	}
+	return a.store.SetScheduleImportant(id, important)
 }
 
 func validHHMM(s string) bool {

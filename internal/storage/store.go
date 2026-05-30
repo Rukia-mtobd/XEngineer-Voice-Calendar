@@ -21,6 +21,7 @@ type ScheduleRecord struct {
 	EndTime    string    `json:"endTime" gorm:"size:8"`
 	Duration   int       `json:"duration"`
 	Desc       string    `json:"desc" gorm:"type:text"`
+	IsImportant bool     `json:"isImportant" gorm:"not null;default:false;index"`
 	CreatedAt  time.Time `json:"createdAt"`
 }
 
@@ -86,6 +87,20 @@ func (s *Store) ListSchedulesByDate(date string) ([]ScheduleRecord, error) {
 	return rows, nil
 }
 
+// ListImportantSchedules 返回全部被标记为重要的日程。
+func (s *Store) ListImportantSchedules() ([]ScheduleRecord, error) {
+	var rows []ScheduleRecord
+	if err := s.db.
+		Where("is_important = ?", true).
+		Order("date asc").
+		Order("start_time asc").
+		Order("created_at desc").
+		Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	return rows, nil
+}
+
 // ListScheduledDatesByMonth 返回指定月份（YYYY-MM）内有日程的去重日期列表（YYYY-MM-DD）。
 func (s *Store) ListScheduledDatesByMonth(month string) ([]string, error) {
 	month = strings.TrimSpace(month)
@@ -135,6 +150,20 @@ func (s *Store) UpdateScheduleByID(id uint, title, startTime, endTime string) (S
 		return ScheduleRecord{}, err
 	}
 
+	var row ScheduleRecord
+	if err := s.db.First(&row, id).Error; err != nil {
+		return ScheduleRecord{}, err
+	}
+	return row, nil
+}
+
+// SetScheduleImportant 按 ID 设置日程是否重要。
+func (s *Store) SetScheduleImportant(id uint, important bool) (ScheduleRecord, error) {
+	if err := s.db.Model(&ScheduleRecord{}).
+		Where("id = ?", id).
+		Update("is_important", important).Error; err != nil {
+		return ScheduleRecord{}, err
+	}
 	var row ScheduleRecord
 	if err := s.db.First(&row, id).Error; err != nil {
 		return ScheduleRecord{}, err

@@ -14,6 +14,8 @@ export function DeleteSchedulesByDate(arg1:string):Promise<number>;
 
 export function ExportSchedulesCSV(arg1:Array<main.ExportScheduleItem>):Promise<string>;
 
+export function ListImportantSchedules():Promise<Array<storage.ScheduleRecord>>;
+
 export function ListScheduledDatesByMonth(arg1:string):Promise<Array<string>>;
 
 export function ListSchedules():Promise<Array<storage.ScheduleRecord>>;
@@ -33,5 +35,7 @@ export function Placeholder():Promise<void>;
 export function RecognizeSpeech(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function SaveApiKey(arg1:string):Promise<void>;
+
+export function SetScheduleImportant(arg1:number,arg2:boolean):Promise<storage.ScheduleRecord>;
 
 export function UpdateScheduleByID(arg1:number,arg2:string,arg3:string,arg4:string):Promise<storage.ScheduleRecord>;

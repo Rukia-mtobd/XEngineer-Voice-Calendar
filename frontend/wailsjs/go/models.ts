@@ -102,6 +102,7 @@ export namespace storage {
 	    endTime: string;
 	    duration: number;
 	    desc: string;
+	    isImportant: boolean;
 	    // Go type: time
 	    createdAt: any;
 	
@@ -118,6 +119,7 @@ export namespace storage {
 	        this.endTime = source["endTime"];
 	        this.duration = source["duration"];
 	        this.desc = source["desc"];
+	        this.isImportant = source["isImportant"];
 	        this.createdAt = this.convertValues(source["createdAt"], null);
 	    }
 	

@@ -21,8 +21,12 @@ export function ParseDeleteIntent(arg1:string):Promise<llm.DeleteIntent>;
 
 export function ParseSchedule(arg1:string):Promise<Array<llm.ParsedSchedule>>;
 
+export function ParseUpdateIntent(arg1:string):Promise<llm.UpdateIntent>;
+
 export function Placeholder():Promise<void>;
 
 export function RecognizeSpeech(arg1:string,arg2:string,arg3:string):Promise<string>;
 
 export function SaveApiKey(arg1:string):Promise<void>;
+
+export function UpdateScheduleByID(arg1:number,arg2:string,arg3:string,arg4:string):Promise<storage.ScheduleRecord>;

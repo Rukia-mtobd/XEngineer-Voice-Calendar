@@ -99,3 +99,43 @@ func (s *Store) DeleteSchedulesByDate(date string) (int64, error) {
 	res := s.db.Where("date = ?", strings.TrimSpace(date)).Delete(&ScheduleRecord{})
 	return res.RowsAffected, res.Error
 }
+
+func (s *Store) UpdateScheduleByID(id uint, title, startTime, endTime string) (ScheduleRecord, error) {
+	title = strings.TrimSpace(title)
+	startTime = strings.TrimSpace(startTime)
+	endTime = strings.TrimSpace(endTime)
+
+	updates := map[string]any{
+		"title":      title,
+		"start_time": startTime,
+		"end_time":   endTime,
+	}
+	if startTime != "" && endTime != "" {
+		updates["duration"] = calcDurationMinutes(startTime, endTime)
+	} else if endTime == "" {
+		updates["duration"] = 0
+	}
+
+	if err := s.db.Model(&ScheduleRecord{}).Where("id = ?", id).Updates(updates).Error; err != nil {
+		return ScheduleRecord{}, err
+	}
+
+	var row ScheduleRecord
+	if err := s.db.First(&row, id).Error; err != nil {
+		return ScheduleRecord{}, err
+	}
+	return row, nil
+}
+
+func calcDurationMinutes(start, end string) int {
+	startT, err1 := time.Parse("15:04", start)
+	endT, err2 := time.Parse("15:04", end)
+	if err1 != nil || err2 != nil {
+		return 0
+	}
+	minutes := int(endT.Sub(startT).Minutes())
+	if minutes < 0 {
+		minutes += 24 * 60
+	}
+	return minutes
+}

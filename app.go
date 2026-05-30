@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -106,6 +107,18 @@ func (a *App) ParseDeleteIntent(text string) (llm.DeleteIntent, error) {
 	return a.llm.ParseDeleteIntent(apiKey, text, time.Now())
 }
 
+// ParseUpdateIntent 调用大模型识别修改意图与更新字段。
+func (a *App) ParseUpdateIntent(text string) (llm.UpdateIntent, error) {
+	apiKey, err := config.LoadApiKey()
+	if err != nil {
+		return llm.UpdateIntent{}, err
+	}
+	if strings.TrimSpace(apiKey) == "" {
+		return llm.UpdateIntent{}, errors.New("请先配置并保存阿里云 API Key")
+	}
+	return a.llm.ParseUpdateIntent(apiKey, text, time.Now())
+}
+
 // CreateSchedule 新增一条日程到 SQLite。
 func (a *App) CreateSchedule(item llm.ParsedSchedule) (storage.ScheduleRecord, error) {
 	rec := storage.ScheduleRecord{
@@ -167,4 +180,29 @@ func (a *App) DeleteSchedulesByDate(date string) (int64, error) {
 		return 0, errors.New("date 不能为空")
 	}
 	return a.store.DeleteSchedulesByDate(date)
+}
+
+// UpdateScheduleByID 按 ID 更新标题、开始时间、结束时间（结束时间可空）。
+func (a *App) UpdateScheduleByID(id uint, title, startTime, endTime string) (storage.ScheduleRecord, error) {
+	if id == 0 {
+		return storage.ScheduleRecord{}, errors.New("id 不能为空")
+	}
+	title = strings.TrimSpace(title)
+	startTime = strings.TrimSpace(startTime)
+	endTime = strings.TrimSpace(endTime)
+
+	if title == "" {
+		return storage.ScheduleRecord{}, errors.New("title 不能为空")
+	}
+	if startTime != "" && !validHHMM(startTime) {
+		return storage.ScheduleRecord{}, errors.New("startTime 格式必须为 HH:mm")
+	}
+	if endTime != "" && !validHHMM(endTime) {
+		return storage.ScheduleRecord{}, errors.New("endTime 格式必须为 HH:mm")
+	}
+	return a.store.UpdateScheduleByID(id, title, startTime, endTime)
+}
+
+func validHHMM(s string) bool {
+	return regexp.MustCompile(`^\d{2}:\d{2}$`).MatchString(s)
 }

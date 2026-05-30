@@ -1286,6 +1286,7 @@
     const createScheduleDB = (item) => invokeBackend("CreateSchedule", item);
     const listSchedulesDB = () => invokeBackend("ListSchedules");
     const listSchedulesByDateDB = (date) => invokeBackend("ListSchedulesByDate", date);
+    const listScheduledDatesByMonthDB = (month) => invokeBackend("ListScheduledDatesByMonth", month);
     const deleteScheduleByIDDB = (id) => invokeBackend("DeleteScheduleByID", id);
     const deleteScheduleByDateTitleDB = (date,title) => invokeBackend("DeleteScheduleByDateAndTitle", date, title);
     const deleteSchedulesByDateDB = (date) => invokeBackend("DeleteSchedulesByDate", date);
@@ -1342,6 +1343,7 @@
     let datePickerTargetInput=null;
     let datePickerTargetText=null;
     let dateCursor=new Date(today.getFullYear(),today.getMonth(),1);
+    const markedDateSet = new Set();
 
     const iso=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     const parseISO=(s)=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
@@ -1435,6 +1437,17 @@
     async function refreshByCurrentFilter(){
       if(activeFilterDate) await fetchSchedulesByDate(activeFilterDate);
       else await fetchAllSchedules();
+      await refreshMarkedDatesForMonth(monthCursor);
+    }
+    async function refreshMarkedDatesForMonth(d){
+      const monthKey=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+      try{
+        const rows=await listScheduledDatesByMonthDB(monthKey);
+        markedDateSet.clear();
+        (Array.isArray(rows)?rows:[]).forEach((x)=>markedDateSet.add(String(x)));
+      }catch(_){
+        markedDateSet.clear();
+      }
     }
     function positionDatePicker(){
       if(!datePickerAnchor) return;
@@ -1513,7 +1526,7 @@
     function cell(d,other){
       const key=iso(d);
       const cls=["cell",other?"other":"",sameDay(d,today)?"today":"",sameDay(d,selectedDate)?"selected":""].filter(Boolean).join(" ");
-      const has=schedules.some(s=>s.date===key);
+      const has=!other && markedDateSet.has(key);
       const lunar=other?"":LUNAR[(d.getDate()-1)%30];
       return `<button class="${cls}" data-date="${key}"><span class="cell-num">${d.getDate()}</span><span class="cell-lunar">${lunar}</span>${has?'<span class="cell-dot"></span>':""}</button>`;
     }
@@ -2059,23 +2072,23 @@
         selectedDate=parseISO(b.dataset.date);
         monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
         activeFilterDate=b.dataset.date||"";
-        fetchSchedulesByDate(activeFilterDate).then(renderAll).catch((err)=>showToast(String(err)));
+        fetchSchedulesByDate(activeFilterDate).then(()=>refreshMarkedDatesForMonth(monthCursor)).then(renderAll).catch((err)=>showToast(String(err)));
       });
       el.miniGrid.addEventListener("click",(ev)=>{
         const b=ev.target.closest(".mini-cell");if(!b)return;
         selectedDate=parseISO(b.dataset.date);
         monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
         activeFilterDate=b.dataset.date||"";
-        fetchSchedulesByDate(activeFilterDate).then(renderAll).catch((err)=>showToast(String(err)));
+        fetchSchedulesByDate(activeFilterDate).then(()=>refreshMarkedDatesForMonth(monthCursor)).then(renderAll).catch((err)=>showToast(String(err)));
       });
       el.upList.addEventListener("click",(ev)=>{
         const b=ev.target.closest(".up-item");if(!b)return;
         selectedDate=parseISO(b.dataset.date);
         monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
-        renderAll();
+        refreshMarkedDatesForMonth(monthCursor).then(()=>renderAll());
       });
-      $("mini-prev").addEventListener("click",()=>{monthCursor.setMonth(monthCursor.getMonth()-1);renderMain();renderMini();});
-      $("mini-next").addEventListener("click",()=>{monthCursor.setMonth(monthCursor.getMonth()+1);renderMain();renderMini();});
+      $("mini-prev").addEventListener("click",async ()=>{monthCursor.setMonth(monthCursor.getMonth()-1);await refreshMarkedDatesForMonth(monthCursor);renderMain();renderMini();});
+      $("mini-next").addEventListener("click",async ()=>{monthCursor.setMonth(monthCursor.getMonth()+1);await refreshMarkedDatesForMonth(monthCursor);renderMain();renderMini();});
 
       el.micBtn.addEventListener("click",()=>{isRecording?stopRecording():startRecording();});
       el.addBtn.addEventListener("click",()=>{
@@ -2310,8 +2323,8 @@
           return;
         }
         if(document.activeElement===el.cmdInput)return;
-        if(ev.key==="ArrowLeft"){selectedDate.setDate(selectedDate.getDate()-1);monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);renderAll();}
-        if(ev.key==="ArrowRight"){selectedDate.setDate(selectedDate.getDate()+1);monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);renderAll();}
+        if(ev.key==="ArrowLeft"){selectedDate.setDate(selectedDate.getDate()-1);monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);refreshMarkedDatesForMonth(monthCursor).then(()=>renderAll());}
+        if(ev.key==="ArrowRight"){selectedDate.setDate(selectedDate.getDate()+1);monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);refreshMarkedDatesForMonth(monthCursor).then(()=>renderAll());}
       });
 
       // sidebar nav (visual)
@@ -2333,6 +2346,7 @@
       try{const key=await LoadApiKey();if(key)el.apiKey.value=key;}catch(_){}
       try{
         await fetchAllSchedules();
+        await refreshMarkedDatesForMonth(monthCursor);
       }catch(err){
         showToast(String(err));
       }

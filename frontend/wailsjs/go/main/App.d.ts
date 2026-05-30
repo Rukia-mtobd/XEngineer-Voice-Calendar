@@ -14,6 +14,8 @@ export function DeleteSchedulesByDate(arg1:string):Promise<number>;
 
 export function ExportSchedulesCSV(arg1:Array<main.ExportScheduleItem>):Promise<string>;
 
+export function ListScheduledDatesByMonth(arg1:string):Promise<Array<string>>;
+
 export function ListSchedules():Promise<Array<storage.ScheduleRecord>>;
 
 export function ListSchedulesByDate(arg1:string):Promise<Array<storage.ScheduleRecord>>;

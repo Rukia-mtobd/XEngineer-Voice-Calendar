@@ -166,6 +166,15 @@ func (a *App) ListSchedulesByDate(date string) ([]storage.ScheduleRecord, error)
 	return a.store.ListSchedulesByDate(date)
 }
 
+// ListScheduledDatesByMonth 查询某月有日程的日期（YYYY-MM-DD）。
+func (a *App) ListScheduledDatesByMonth(month string) ([]string, error) {
+	month = strings.TrimSpace(month)
+	if !regexp.MustCompile(`^\d{4}-\d{2}$`).MatchString(month) {
+		return nil, errors.New("month 格式必须为 YYYY-MM")
+	}
+	return a.store.ListScheduledDatesByMonth(month)
+}
+
 // DeleteScheduleByID 按 ID 删除单条日程。
 func (a *App) DeleteScheduleByID(id uint) error {
 	if id == 0 {

@@ -810,11 +810,7 @@
                   <span class="hero-note" id="hero-note">Have a nice and productive day! <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 3.9L17.5 8l-3.9 1.6L12 13l-1.6-3.4L6.5 8z"/></svg></span>
                 </div>
               </div>
-              <div class="segment" id="segment">
-                <button class="seg-btn" data-view="day">Day</button>
-                <button class="seg-btn" data-view="week">Week</button>
-                <button class="seg-btn active" data-view="month">Month</button>
-              </div>
+            <div></div>
             </div>
           </section>
 
@@ -1321,13 +1317,12 @@
       statusSeg:$("status-seg"),
       navSettings:$("nav-settings"),btnBell:$("btn-bell"),
       themeToggle:$("theme-toggle"),themeIcon:$("theme-icon"),themeSeg:$("theme-seg"),langSeg:$("lang-seg"),
-      wave:$("wave"),segment:$("segment"),avatar:$("avatar")
+      wave:$("wave"),avatar:$("avatar")
     };
 
     const today=new Date();today.setHours(0,0,0,0);
     let monthCursor=new Date(today.getFullYear(),today.getMonth(),1);
     let selectedDate=new Date(today);
-    let currentView="month";
     const schedules=[];
     let activeFilterDate="";
     let recorder=null,stream=null,chunks=[],isRecording=false,pendingStop=false,toastTimer=null;
@@ -1843,7 +1838,6 @@
         const key=node.getAttribute("data-i18n-ph");const val=t(key);
         if(val&&val!==key)node.setAttribute("placeholder",val);
       });
-      el.segment.querySelectorAll(".seg-btn").forEach(b=>{b.textContent=t("view."+b.dataset.view);});
       el.langSeg.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.lang===lang));
       el.editTitle.textContent=t("editTitle");
       el.editCancel.textContent=t("editCancel");
@@ -2053,11 +2047,6 @@
     }
 
     function bind(){
-      el.segment.addEventListener("click",(ev)=>{
-        const b=ev.target.closest(".seg-btn");if(!b)return;
-        currentView=b.dataset.view;
-        el.segment.querySelectorAll(".seg-btn").forEach(x=>x.classList.toggle("active",x===b));
-      });
       if(el.statusSeg){
         el.statusSeg.addEventListener("click",(ev)=>{
           const b=ev.target.closest(".status-btn");

@@ -86,6 +86,21 @@ func (s *Store) ListSchedulesByDate(date string) ([]ScheduleRecord, error) {
 	return rows, nil
 }
 
+// ListScheduledDatesByMonth 返回指定月份（YYYY-MM）内有日程的去重日期列表（YYYY-MM-DD）。
+func (s *Store) ListScheduledDatesByMonth(month string) ([]string, error) {
+	month = strings.TrimSpace(month)
+	var dates []string
+	if err := s.db.
+		Model(&ScheduleRecord{}).
+		Distinct("date").
+		Where("date LIKE ?", month+"-%").
+		Order("date asc").
+		Pluck("date", &dates).Error; err != nil {
+		return nil, err
+	}
+	return dates, nil
+}
+
 func (s *Store) DeleteScheduleByID(id uint) error {
 	return s.db.Delete(&ScheduleRecord{}, id).Error
 }

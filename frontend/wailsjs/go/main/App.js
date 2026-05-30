@@ -18,6 +18,14 @@ export function DeleteSchedulesByDate(arg1) {
   return window['go']['main']['App']['DeleteSchedulesByDate'](arg1);
 }
 
+export function ExportSchedulesCSV(arg1) {
+  return window['go']['main']['App']['ExportSchedulesCSV'](arg1);
+}
+
+export function ListScheduledDatesByMonth(arg1) {
+  return window['go']['main']['App']['ListScheduledDatesByMonth'](arg1);
+}
+
 export function ListSchedules() {
   return window['go']['main']['App']['ListSchedules']();
 }

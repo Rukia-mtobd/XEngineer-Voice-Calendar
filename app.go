@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -12,6 +15,8 @@ import (
 	"xengineer-voice-calendar/internal/config"
 	"xengineer-voice-calendar/internal/llm"
 	"xengineer-voice-calendar/internal/storage"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App 前后端交互载体，后续功能方法在此扩展。
@@ -20,6 +25,15 @@ type App struct {
 	asr   *asr.Client
 	llm   *llm.Client
 	store *storage.Store
+}
+
+// ExportScheduleItem 是导出 CSV 时前端传入的行数据。
+type ExportScheduleItem struct {
+	Date      string `json:"date"`
+	StartTime string `json:"startTime"`
+	EndTime   string `json:"endTime"`
+	Title     string `json:"title"`
+	Status    string `json:"status"`
 }
 
 // NewApp 创建 App 实例。
@@ -152,6 +166,15 @@ func (a *App) ListSchedulesByDate(date string) ([]storage.ScheduleRecord, error)
 	return a.store.ListSchedulesByDate(date)
 }
 
+// ListScheduledDatesByMonth 查询某月有日程的日期（YYYY-MM-DD）。
+func (a *App) ListScheduledDatesByMonth(month string) ([]string, error) {
+	month = strings.TrimSpace(month)
+	if !regexp.MustCompile(`^\d{4}-\d{2}$`).MatchString(month) {
+		return nil, errors.New("month 格式必须为 YYYY-MM")
+	}
+	return a.store.ListScheduledDatesByMonth(month)
+}
+
 // DeleteScheduleByID 按 ID 删除单条日程。
 func (a *App) DeleteScheduleByID(id uint) error {
 	if id == 0 {
@@ -205,4 +228,64 @@ func (a *App) UpdateScheduleByID(id uint, title, startTime, endTime string) (sto
 
 func validHHMM(s string) bool {
 	return regexp.MustCompile(`^\d{2}:\d{2}$`).MatchString(s)
+}
+
+// ExportSchedulesCSV 导出当前日程列表为 CSV 文件。
+// 前端传入当前筛选后的数据，后端通过系统保存对话框让用户选择路径。
+func (a *App) ExportSchedulesCSV(items []ExportScheduleItem) (string, error) {
+	if a.ctx == nil {
+		return "", errors.New("应用上下文未初始化")
+	}
+	if len(items) == 0 {
+		return "", errors.New("没有可导出的日程")
+	}
+
+	filename := fmt.Sprintf("voice-calendar-%s.csv", time.Now().Format("20060102-150405"))
+	targetPath, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		Title:           "导出日程为 CSV",
+		DefaultFilename: filename,
+		Filters: []runtime.FileFilter{
+			{
+				DisplayName: "CSV Files (*.csv)",
+				Pattern:     "*.csv",
+			},
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+	if strings.TrimSpace(targetPath) == "" {
+		return "", errors.New("已取消导出")
+	}
+	if filepath.Ext(strings.ToLower(targetPath)) != ".csv" {
+		targetPath += ".csv"
+	}
+
+	f, err := os.Create(targetPath)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	w := csv.NewWriter(f)
+	defer w.Flush()
+
+	if err := w.Write([]string{"日期", "开始时间", "结束时间", "标题", "状态"}); err != nil {
+		return "", err
+	}
+	for _, it := range items {
+		if err := w.Write([]string{
+			strings.TrimSpace(it.Date),
+			strings.TrimSpace(it.StartTime),
+			strings.TrimSpace(it.EndTime),
+			strings.TrimSpace(it.Title),
+			strings.TrimSpace(it.Status),
+		}); err != nil {
+			return "", err
+		}
+	}
+	if err := w.Error(); err != nil {
+		return "", err
+	}
+	return targetPath, nil
 }

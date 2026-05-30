@@ -317,6 +317,13 @@
     }
     .tev-edit:hover{background:var(--hairline);color:var(--accent)}
     .tev-edit svg{width:14px;height:14px}
+    .tev-fav{
+      width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:#b6b6bc;
+      transition:background .2s var(--ease),color .2s var(--ease),transform .2s var(--ease);
+    }
+    .tev-fav:hover{background:var(--hairline);color:#ffb340;transform:scale(1.06)}
+    .tev-fav svg{width:14px;height:14px}
+    .tev-fav.active{color:#ffb340}
 
     /* AI insight */
     .insight-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -722,6 +729,90 @@
     }
     .sc-stats{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--muted)}
     .sc-stats .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+
+    .fav-mask{
+      position:fixed;inset:0;z-index:97;
+      background:rgba(8,10,14,.30);backdrop-filter:blur(6px);
+      opacity:0;pointer-events:none;transition:opacity .28s var(--ease);
+    }
+    .fav-mask.open{opacity:1;pointer-events:auto}
+    .fav-dialog{
+      width:min(980px,94vw);height:min(720px,88vh);margin:7vh auto 0;
+      border-radius:28px;background:rgba(255,255,255,.92);backdrop-filter:blur(24px);
+      box-shadow:0 20px 60px rgba(15,23,42,.08);border:1px solid rgba(255,255,255,.7);
+      display:flex;flex-direction:column;min-height:0;padding:0 40px;
+      transform:translateY(12px) scale(.96);opacity:0;
+      transition:transform .28s ease-out,opacity .28s ease-out;
+    }
+    .fav-mask.open .fav-dialog{transform:translateY(0) scale(1);opacity:1}
+    .fav-head{
+      height:88px;display:flex;align-items:center;justify-content:space-between;
+      border-bottom:1px solid var(--hairline);
+    }
+    .fav-title{font-size:32px;font-weight:600;letter-spacing:-.03em;color:#1d1d1f}
+    .fav-sub{font-size:17px;font-weight:400;color:#86868b;margin-top:4px}
+    .fav-close{
+      width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--muted);
+      transition:background .2s var(--ease),color .2s var(--ease);
+    }
+    .fav-close:hover{background:#f5f5f7;color:var(--ink)}
+    .fav-stats{display:flex;gap:10px;padding:16px 0 10px}
+    .fav-pill{
+      height:40px;border-radius:999px;background:#f5f5f7;color:#1d1d1f;
+      padding:0 18px;display:inline-flex;align-items:center;font-size:14px;font-weight:500;
+      cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease);
+    }
+    .fav-pill.active{background:#0066ff;color:#fff}
+    .fav-body{flex:1;min-height:0;overflow:auto;padding:8px 0 14px;scroll-behavior:smooth}
+    .fav-body::-webkit-scrollbar{width:0;height:0}
+    .fav-card{
+      background:#fff;border:1px solid #e5e5ea;border-radius:20px;
+      padding:20px;display:grid;grid-template-columns:56px 1fr auto;gap:16px;align-items:flex-start;
+      margin-bottom:16px;
+      transition:transform .2s var(--ease),box-shadow .2s var(--ease),background .2s var(--ease);
+    }
+    .fav-card:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(15,23,42,.06)}
+    .fav-star{
+      width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+      background:rgba(255,179,64,.18);color:#ffb340;transition:transform .2s var(--ease);
+    }
+    .fav-card:hover .fav-star{transform:scale(1.04)}
+    .fav-main .t{font-size:18px;font-weight:600;color:#1d1d1f;letter-spacing:-.02em}
+    .fav-main .dt{font-size:15px;font-weight:500;color:#6e6e73;margin-top:6px}
+    .fav-main .desc{
+      font-size:14px;color:#86868b;margin-top:7px;line-height:1.45;
+      display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;
+    }
+    .fav-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+    .fav-when{
+      height:32px;border-radius:999px;background:#f2f7ff;color:#0066cc;
+      padding:0 14px;display:inline-flex;align-items:center;font-size:13px;font-weight:600;white-space:nowrap;
+    }
+    .fav-remove{
+      height:28px;border-radius:999px;padding:0 12px;
+      background:rgba(0,0,0,.04);color:#86868b;font-size:12px;font-weight:600;
+      transition:background .2s var(--ease),color .2s var(--ease);
+    }
+    .fav-remove:hover{background:rgba(255,59,48,.12);color:#ff3b30}
+    .fav-card.is-completed .fav-main .t{color:#9a9aa0}
+    .fav-card.is-completed .fav-main .dt{color:#a8a8ae}
+    .fav-card.is-completed .fav-main .desc{color:#b2b2b8}
+    .fav-when.done{background:#f1f1f4;color:#8e8e93}
+    .fav-card.is-completed .fav-star{background:rgba(210,210,215,.28);color:#c0c0c6}
+    .fav-empty{
+      height:100%;display:grid;place-items:center;text-align:center;padding:10px;
+    }
+    .fav-empty .icon{width:120px;height:120px;color:#d2d2d7;margin:0 auto 14px}
+    .fav-empty .title{font-size:24px;font-weight:600;color:#1d1d1f;letter-spacing:-.02em}
+    .fav-empty .sub{font-size:16px;font-weight:400;color:#86868b;margin-top:8px}
+    [data-theme="dark"] .fav-dialog{background:rgba(24,24,27,.92);border-color:rgba(255,255,255,.12)}
+    [data-theme="dark"] .fav-title{color:#f5f5f7}
+    [data-theme="dark"] .fav-sub{color:#a6a6ad}
+    [data-theme="dark"] .fav-pill{background:rgba(255,255,255,.08);color:#f5f5f7}
+    [data-theme="dark"] .fav-card{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.12)}
+    [data-theme="dark"] .fav-main .t{color:#f5f5f7}
+    [data-theme="dark"] .fav-main .dt{color:#c7c7cc}
+    [data-theme="dark"] .fav-main .desc{color:#a7a7ad}
     @media (max-width:760px){
       .add-dialog,.edit-dialog{width:min(700px,96vw);padding:18px;border-radius:22px}
       .modal-title{font-size:26px}
@@ -930,6 +1021,24 @@
         </div>
         <button class="sc-tool-btn" id="all-export-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span id="all-export-label">导出日程</span></button>
       </div>
+    </div>
+  </div>
+
+  <div class="fav-mask" id="fav-mask" aria-hidden="true">
+    <div class="fav-dialog" role="dialog" aria-modal="true" aria-labelledby="fav-title">
+      <div class="fav-head">
+        <div>
+          <div class="fav-title" id="fav-title">重要日程</div>
+          <div class="fav-sub" id="fav-sub">您特别关注的重要安排</div>
+        </div>
+        <button class="fav-close" id="fav-close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="fav-stats">
+        <span class="fav-pill active" id="fav-pill-total">重要日程 0</span>
+        <span class="fav-pill" id="fav-pill-week">本周即将开始 0</span>
+        <span class="fav-pill" id="fav-pill-month">本月重点事项 0</span>
+      </div>
+      <div class="fav-body" id="fav-list"></div>
     </div>
   </div>
 
@@ -1144,6 +1253,13 @@
         allSchedulesSub:"查看和管理全部已生成日程",
         allSchedulesEmpty:"暂无日程",
         allSearchPlaceholder:"按标题搜索...",
+        importantTitle:"重要日程",
+        importantSub:"您特别关注的重要安排",
+        importantTotal:"重要日程 {{n}}",
+        importantWeek:"本周即将开始 {{n}}",
+        importantMonth:"本月重点事项 {{n}}",
+        importantEmptyTitle:"暂无重要日程",
+        importantEmptySub:"点击日程右侧星标即可加入重要",
         allExportBtn:"导出日程",
         exportSuccess:"导出成功",
         exportFail:"导出失败，请重试",
@@ -1238,6 +1354,13 @@
         allSchedulesSub:"View and manage all generated schedules",
         allSchedulesEmpty:"No schedules yet",
         allSearchPlaceholder:"Search by title...",
+        importantTitle:"Important Schedules",
+        importantSub:"Your specially watched key schedules",
+        importantTotal:"Important {{n}}",
+        importantWeek:"This week {{n}}",
+        importantMonth:"This month {{n}}",
+        importantEmptyTitle:"No important schedules",
+        importantEmptySub:"Click the star on a schedule to mark important",
         allExportBtn:"Export",
         exportSuccess:"Export succeeded",
         exportFail:"Export failed, please retry",
@@ -1289,6 +1412,8 @@
     const parseDeleteIntentDB = (text) => invokeBackend("ParseDeleteIntent", text);
     const parseUpdateIntentDB = (text) => invokeBackend("ParseUpdateIntent", text);
     const updateScheduleByIDDB = (id,title,startTime,endTime) => invokeBackend("UpdateScheduleByID", id, title, startTime, endTime);
+    const listImportantSchedulesDB = () => invokeBackend("ListImportantSchedules");
+    const setScheduleImportantDB = (id, important) => invokeBackend("SetScheduleImportant", id, important);
     const exportSchedulesCSVDB = (items) => invokeBackend("ExportSchedulesCSV", items);
 
     const $=(id)=>document.getElementById(id);
@@ -1314,6 +1439,7 @@
       allSearch:$("all-search"),allTabs:$("all-tabs"),allExportLabel:$("all-export-label"),allExportBtn:$("all-export-btn"),
       allTabAll:$("all-tab-all"),allTabTodo:$("all-tab-todo"),allTabDone:$("all-tab-done"),allCountAll:$("all-count-all"),allCountTodo:$("all-count-todo"),allCountDone:$("all-count-done"),
       allStatTotal:$("all-stat-total"),allStatTodo:$("all-stat-todo"),allStatDone:$("all-stat-done"),
+      favMask:$("fav-mask"),favClose:$("fav-close"),favTitle:$("fav-title"),favSub:$("fav-sub"),favList:$("fav-list"),favPillTotal:$("fav-pill-total"),favPillWeek:$("fav-pill-week"),favPillMonth:$("fav-pill-month"),
       statusSeg:$("status-seg"),
       navSettings:$("nav-settings"),btnBell:$("btn-bell"),
       themeToggle:$("theme-toggle"),themeIcon:$("theme-icon"),themeSeg:$("theme-seg"),langSeg:$("lang-seg"),
@@ -1333,6 +1459,9 @@
     let allDialogFilter="all";
     let allDialogQuery="";
     let allDialogSchedules=[];
+    let favDialogOpen=false;
+    let favoriteSchedules=[];
+    let favFilter="all";
     let datePickerOpen=false;
     let datePickerAnchor=null;
     let datePickerTargetInput=null;
@@ -1412,6 +1541,7 @@
         startTime:(raw?.startTime||"").trim(),
         endTime:(raw?.endTime||"").trim(),
         duration:Number(raw?.duration)||0,
+        isImportant:Boolean(raw?.isImportant),
         desc:(raw?.desc||"").trim(),
         color:DOTS[schedules.length%DOTS.length]
       };
@@ -1563,6 +1693,9 @@
             <button class="tev-edit" data-edit-id="${it.id||0}" title="${t("edit")}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="m16.5 3.5 4 4L8 20l-4 1 1-4z"/></svg>
             </button>
+            <button class="tev-fav ${it.isImportant?"active":""}" data-fav-id="${it.id||0}" data-fav-val="${it.isImportant?"1":"0"}" title="Important">
+              <svg viewBox="0 0 24 24" fill="${it.isImportant?"currentColor":"none"}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg>
+            </button>
             <button class="tev-del" data-del-id="${it.id||0}" data-del-date="${it.date}" data-del-title="${it.title}" title="${t("deleted")}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M7 6l1 14h8l1-14M10 11v6M14 11v6"/></svg>
             </button>
@@ -1596,6 +1729,22 @@
             showToast(t("toast.deleted",{n:"1"}));
           }catch(err){
             showToast(`${t("deleteFail")}: ${String(err)}`);
+          }
+        });
+      });
+      el.todayBody.querySelectorAll(".tev-fav").forEach((btn)=>{
+        btn.addEventListener("click", async (ev)=>{
+          ev.stopPropagation();
+          const id=Number(btn.dataset.favId)||0;
+          if(!id) return;
+          const current=btn.dataset.favVal==="1";
+          try{
+            await setScheduleImportantDB(id, !current);
+            await refreshByCurrentFilter();
+            renderAll();
+            if(favDialogOpen) await openFavoritesDialog(true);
+          }catch(err){
+            showToast(String(err));
           }
         });
       });
@@ -1734,6 +1883,81 @@
       el.allMask.classList.remove("open");
       el.allMask.setAttribute("aria-hidden","true");
     }
+    function relativeWhen(dateStr){
+      const d=parseISO(dateStr);
+      const base=new Date(today);base.setHours(0,0,0,0);
+      const diff=Math.floor((d.getTime()-base.getTime())/86400000);
+      if(diff===0) return isZh()?"今天":"Today";
+      if(diff===1) return isZh()?"明天":"Tomorrow";
+      if(diff<0) return isZh()?"已完成":"Completed";
+      if(diff>1 && diff<=7) return isZh()?`${diff}天后`:`In ${diff} days`;
+      return isZh()?`下周${WEEK_ZH[d.getDay()]}`:`Next ${WEEKDAY_FULL_EN[d.getDay()]}`;
+    }
+    async function openFavoritesDialog(refreshOnly=false){
+      if(!refreshOnly){
+        favFilter="all";
+        el.favPillTotal.classList.add("active");
+        el.favPillWeek.classList.remove("active");
+        el.favPillMonth.classList.remove("active");
+      }
+      const rows=await listImportantSchedulesDB();
+      favoriteSchedules=(Array.isArray(rows)?rows:[]).map((raw,idx)=>({
+        ...toScheduleFromDB(raw),
+        color:DOTS[idx % DOTS.length],
+      }));
+      const now=new Date();
+      const weekEnd=new Date(now); weekEnd.setDate(weekEnd.getDate()+7);
+      const monthKey=`${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,"0")}`;
+      const weekCount=favoriteSchedules.filter((x)=>parseISO(x.date)>=today && parseISO(x.date)<=weekEnd).length;
+      const monthCount=favoriteSchedules.filter((x)=>String(x.date||"").startsWith(monthKey)).length;
+      el.favPillTotal.textContent=t("importantTotal",{n:String(favoriteSchedules.length)});
+      el.favPillWeek.textContent=t("importantWeek",{n:String(weekCount)});
+      el.favPillMonth.textContent=t("importantMonth",{n:String(monthCount)});
+      const data = favoriteSchedules.filter((it)=>{
+        if(favFilter==="week"){
+          return parseISO(it.date)>=today && parseISO(it.date)<=weekEnd;
+        }
+        if(favFilter==="month"){
+          return String(it.date||"").startsWith(monthKey);
+        }
+        return true;
+      });
+
+      if(!data.length){
+        el.favList.innerHTML=`<div class="fav-empty"><div><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg></div><div class="title">${t("importantEmptyTitle")}</div><div class="sub">${t("importantEmptySub")}</div></div></div>`;
+      }else{
+        el.favList.innerHTML=data.map((it)=>{
+          const done=isCompleted(it);
+          const d=parseISO(it.date);
+          const dateLine=`${fmtShortDate(d)} · ${isZh()?`周${WEEK_ZH[d.getDay()]}`:WEEKDAY_FULL_EN[d.getDay()]} · ${fmtTimeRange(it)}`;
+          return `<div class="fav-card ${done?"is-completed":""}"><div class="fav-star"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg></div><div class="fav-main"><div class="t">${it.title||""}</div><div class="dt">${dateLine}</div><div class="desc">${(it.desc||"").trim()|| (isZh()?"无备注":"No note")}</div></div><div class="fav-right"><span class="fav-when ${done?"done":""}">${done?(isZh()?"已完成":"Completed"):relativeWhen(it.date)}</span><button class="fav-remove" data-fav-remove-id="${it.id}">${isZh()?"移除重要":"Remove"}</button></div></div>`;
+        }).join("");
+        el.favList.querySelectorAll(".fav-remove").forEach((btn)=>{
+          btn.addEventListener("click", async ()=>{
+            const id=Number(btn.dataset.favRemoveId)||0;
+            if(!id) return;
+            try{
+              await setScheduleImportantDB(id,false);
+              await refreshByCurrentFilter();
+              renderAll();
+              await openFavoritesDialog(true);
+            }catch(err){
+              showToast(String(err));
+            }
+          });
+        });
+      }
+      if(!refreshOnly){
+        favDialogOpen=true;
+        el.favMask.classList.add("open");
+        el.favMask.setAttribute("aria-hidden","false");
+      }
+    }
+    function closeFavoritesDialog(){
+      favDialogOpen=false;
+      el.favMask.classList.remove("open");
+      el.favMask.setAttribute("aria-hidden","true");
+    }
 
     function renderAll(){renderHero();renderMain();renderMini();renderTodayPanel();renderInsight();renderUpcoming();}
 
@@ -1860,9 +2084,12 @@
       if(el.allSubtitle) el.allSubtitle.textContent=t("allSchedulesSub");
       if(el.allSearch) el.allSearch.setAttribute("placeholder",t("allSearchPlaceholder"));
       if(el.allExportLabel) el.allExportLabel.textContent=t("allExportBtn");
+      if(el.favTitle) el.favTitle.textContent=t("importantTitle");
+      if(el.favSub) el.favSub.textContent=t("importantSub");
       if(el.allTabAll) el.allTabAll.textContent=t("statusAll");
       if(el.allTabTodo) el.allTabTodo.textContent=t("statusTodo");
       if(el.allTabDone) el.allTabDone.textContent=t("statusDone");
+      if(favDialogOpen) openFavoritesDialog(true);
       if(allDialogOpen) renderAllSchedulesDialog();
       if(el.addTitleInput) el.addTitleInput.placeholder=t("titlePlaceholder");
       if(el.editTitleInput) el.editTitleInput.placeholder=t("titlePlaceholder");
@@ -2110,6 +2337,11 @@
       el.viewAll.addEventListener("click",(ev)=>{ev.preventDefault();openAllSchedulesDialog();});
       el.allClose.addEventListener("click",closeAllSchedulesDialog);
       el.allMask.addEventListener("click",(ev)=>{ if(ev.target===el.allMask) closeAllSchedulesDialog(); });
+      el.favClose.addEventListener("click",closeFavoritesDialog);
+      el.favMask.addEventListener("click",(ev)=>{ if(ev.target===el.favMask) closeFavoritesDialog(); });
+      el.favPillTotal.addEventListener("click",()=>{favFilter="all";el.favPillTotal.classList.add("active");el.favPillWeek.classList.remove("active");el.favPillMonth.classList.remove("active");openFavoritesDialog(true).catch((err)=>showToast(String(err)));});
+      el.favPillWeek.addEventListener("click",()=>{favFilter="week";el.favPillWeek.classList.add("active");el.favPillTotal.classList.remove("active");el.favPillMonth.classList.remove("active");openFavoritesDialog(true).catch((err)=>showToast(String(err)));});
+      el.favPillMonth.addEventListener("click",()=>{favFilter="month";el.favPillMonth.classList.add("active");el.favPillTotal.classList.remove("active");el.favPillWeek.classList.remove("active");openFavoritesDialog(true).catch((err)=>showToast(String(err)));});
       if(el.allTabs){
         el.allTabs.addEventListener("click",(ev)=>{
           const b=ev.target.closest(".sc-tab");
@@ -2311,6 +2543,10 @@
           closeAllSchedulesDialog();
           return;
         }
+        if(ev.key==="Escape" && favDialogOpen){
+          closeFavoritesDialog();
+          return;
+        }
         if(document.activeElement===el.cmdInput)return;
         if(ev.key==="ArrowLeft"){selectedDate.setDate(selectedDate.getDate()-1);monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);refreshMarkedDatesForMonth(monthCursor).then(()=>renderAll());}
         if(ev.key==="ArrowRight"){selectedDate.setDate(selectedDate.getDate()+1);monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);refreshMarkedDatesForMonth(monthCursor).then(()=>renderAll());}
@@ -2319,9 +2555,9 @@
       // sidebar nav (visual)
       document.querySelectorAll(".nav-btn[data-nav]").forEach(b=>{
         b.addEventListener("click",()=>{
-          if(b.dataset.nav==="settings")return;
+          if(b.dataset.nav==="settings"){openSheet();return;}
+          if(b.dataset.nav==="favorites"){openFavoritesDialog().catch((err)=>showToast(String(err)));return;}
           if(b.dataset.nav==="tasks"){openAllSchedulesDialog();return;}
-          if(b.dataset.nav==="voice"){startRecording();return;}
           document.querySelectorAll(".nav-btn[data-nav]").forEach(x=>x.classList.remove("active"));
           b.classList.add("active");
         });

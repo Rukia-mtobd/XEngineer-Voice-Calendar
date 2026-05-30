@@ -10,20 +10,29 @@ import (
 	"xengineer-voice-calendar/internal/asr"
 	"xengineer-voice-calendar/internal/config"
 	"xengineer-voice-calendar/internal/llm"
+	"xengineer-voice-calendar/internal/storage"
 )
 
 // App 前后端交互载体，后续功能方法在此扩展。
 type App struct {
-	ctx context.Context
-	asr *asr.Client
-	llm *llm.Client
+	ctx   context.Context
+	asr   *asr.Client
+	llm   *llm.Client
+	store *storage.Store
 }
 
 // NewApp 创建 App 实例。
 func NewApp() *App {
+	store, err := storage.NewStore("")
+	if err != nil {
+		// 初始化失败时直接 panic，避免应用在无持久化能力时静默运行。
+		panic(fmt.Errorf("init sqlite store failed: %w", err))
+	}
+
 	return &App{
-		asr: asr.NewClient(),
-		llm: llm.NewClient(),
+		asr:   asr.NewClient(),
+		llm:   llm.NewClient(),
+		store: store,
 	}
 }
 
@@ -83,4 +92,37 @@ func (a *App) ParseSchedule(text string) ([]llm.ParsedSchedule, error) {
 		return nil, errors.New("请先配置并保存阿里云 API Key")
 	}
 	return a.llm.ParseSchedule(apiKey, text, time.Now())
+}
+
+// CreateSchedule 新增一条日程到 SQLite。
+func (a *App) CreateSchedule(item llm.ParsedSchedule) (storage.ScheduleRecord, error) {
+	rec := storage.ScheduleRecord{
+		Date:      strings.TrimSpace(item.Date),
+		Title:     strings.TrimSpace(item.Title),
+		StartTime: strings.TrimSpace(item.StartTime),
+		EndTime:   strings.TrimSpace(item.EndTime),
+		Duration:  item.Duration,
+		Desc:      strings.TrimSpace(item.Desc),
+	}
+	if rec.Date == "" {
+		return storage.ScheduleRecord{}, errors.New("date 不能为空")
+	}
+	if rec.Title == "" {
+		return storage.ScheduleRecord{}, errors.New("title 不能为空")
+	}
+	return a.store.CreateSchedule(rec)
+}
+
+// ListSchedules 查询全部日程。
+func (a *App) ListSchedules() ([]storage.ScheduleRecord, error) {
+	return a.store.ListSchedules()
+}
+
+// ListSchedulesByDate 按日期查询日程。
+func (a *App) ListSchedulesByDate(date string) ([]storage.ScheduleRecord, error) {
+	date = strings.TrimSpace(date)
+	if date == "" {
+		return nil, errors.New("date 不能为空")
+	}
+	return a.store.ListSchedulesByDate(date)
 }

@@ -495,61 +495,88 @@
     }
     .add-mask.open,.edit-mask.open{opacity:1;pointer-events:auto}
     .add-dialog,.edit-dialog{
-      width:min(700px,95vw);
-      border:1px solid var(--hairline);
-      border-radius:28px;
-      background:rgba(255,255,255,.86);
-      backdrop-filter:saturate(180%) blur(28px);
-      box-shadow:0 24px 60px rgba(10,18,28,.14),0 8px 22px rgba(10,18,28,.08);
-      padding:24px;
+      width:min(820px,94vw);
+      border:0;
+      border-radius:32px;
+      background:#fff;
+      box-shadow:0 20px 60px rgba(15,23,42,.08);
+      padding:30px;
       transform:translateY(8px) scale(.985);
       transition:transform .3s var(--ease),opacity .3s var(--ease);
     }
     .add-mask.open .add-dialog,.edit-mask.open .edit-dialog{transform:translateY(0) scale(1)}
-    [data-theme="dark"] .add-dialog,[data-theme="dark"] .edit-dialog{background:rgba(24,24,27,.9)}
+    [data-theme="dark"] .add-dialog,[data-theme="dark"] .edit-dialog{
+      background:rgba(26,26,30,.94);
+      box-shadow:0 20px 60px rgba(0,0,0,.42);
+    }
     [data-theme="dark"] .add-mask,[data-theme="dark"] .edit-mask{background:rgba(8,10,14,.46)}
     .modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
     .modal-title-wrap{display:flex;flex-direction:column;gap:6px}
-    .modal-title{font-size:30px;font-weight:600;letter-spacing:-.03em;line-height:1.1}
-    .modal-sub{font-size:14px;color:var(--muted);line-height:1.45}
-    .modal-close{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;color:var(--muted);flex:0 0 auto}
-    .modal-close:hover{background:var(--hairline);color:var(--ink)}
-    .modal-section{margin-top:16px}
-    .event-preview{
-      border:1px solid var(--hairline);
-      border-radius:18px;
-      background:rgba(255,255,255,.62);
-      padding:13px 14px;
-      display:flex;flex-direction:column;gap:6px;
+    .modal-title{font-size:44px;font-weight:600;letter-spacing:-.03em;line-height:1.06}
+    .modal-sub{font-size:15px;color:#86868b;line-height:1.45}
+    [data-theme="dark"] .modal-sub{color:#a1a1aa}
+    .modal-close{
+      width:34px;height:34px;border-radius:12px;display:grid;place-items:center;color:#86868b;flex:0 0 auto;
+      transition:background .24s var(--ease),color .24s var(--ease);
     }
-    [data-theme="dark"] .event-preview{background:rgba(255,255,255,.04)}
-    .preview-title{font-size:15px;font-weight:600;letter-spacing:-.01em}
-    .preview-meta{font-size:13px;color:var(--muted)}
-    .ai-pill{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:10px 14px;border-radius:999px;
-      border:1px solid var(--hairline);
-      background:rgba(255,255,255,.72);
-      font-size:13px;font-weight:600;color:var(--ink);
-      cursor:pointer;
+    .modal-close:hover{background:rgba(0,0,0,.06);color:#1d1d1f}
+    [data-theme="dark"] .modal-close:hover{background:rgba(255,255,255,.08);color:#f5f5f7}
+    .modal-section{margin-top:18px}
+    .edit-summary{
+      border-radius:22px;
+      background:#f7f7f8;
+      padding:14px 16px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
     }
-    [data-theme="dark"] .ai-pill{background:rgba(255,255,255,.06)}
-    .ai-pill:hover{border-color:rgba(0,102,255,.24);background:var(--accent-soft)}
+    .edit-summary-title{
+      font-size:17px;
+      font-weight:600;
+      letter-spacing:-.02em;
+      color:#1d1d1f;
+    }
+    .edit-summary-line{
+      font-size:14px;
+      color:#86868b;
+      letter-spacing:-.01em;
+      line-height:1.45;
+    }
+    [data-theme="dark"] .edit-summary{background:rgba(255,255,255,.08)}
+    [data-theme="dark"] .edit-summary-title{color:#f5f5f7}
+    [data-theme="dark"] .edit-summary-line{color:#b6b6bd}
     .title-input{
-      width:100%;height:56px;border:1px solid var(--hairline);border-radius:18px;background:var(--bg);
-      padding:0 16px;font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);outline:none;
+      width:100%;height:60px;border:1px solid transparent;border-radius:20px;background:#f8f8fa;
+      padding:0 20px;font-size:26px;font-weight:600;letter-spacing:-.02em;color:#1d1d1f;outline:none;
+      transition:background .24s var(--ease),border-color .24s var(--ease),box-shadow .24s var(--ease);
     }
-    .title-input:focus,.time-input:focus,.note-input:focus{
-      border-color:#0066ff;box-shadow:0 0 0 4px rgba(0,102,255,.12);
+    .title-input::placeholder{color:#a1a1aa;font-weight:500}
+    .title-input:hover{background:#fbfbfd}
+    .title-input:focus{border-color:#0066cc;box-shadow:0 0 0 1px #0066cc;background:#fff}
+    [data-theme="dark"] .title-input{
+      background:rgba(255,255,255,.08);
+      color:#f5f5f7;
+    }
+    [data-theme="dark"] .title-input::placeholder{color:#9b9ba3}
+    [data-theme="dark"] .title-input:hover{background:rgba(255,255,255,.1)}
+    [data-theme="dark"] .title-input:focus{
+      border-color:#0066cc;
+      box-shadow:0 0 0 1px #0066cc;
+      background:rgba(255,255,255,.12);
     }
     .date-pill{
       display:inline-flex;align-items:center;gap:8px;
-      height:40px;padding:0 14px;border-radius:999px;
-      border:1px solid var(--hairline);background:rgba(255,255,255,.72);
-      font-size:13px;font-weight:600;cursor:pointer;
+      height:48px;padding:0 18px;border-radius:24px;
+      border:1px solid transparent;background:#f5f5f7;
+      font-size:16px;font-weight:500;color:#1d1d1f;cursor:pointer;
+      transition:background .24s var(--ease),border-color .24s var(--ease),box-shadow .24s var(--ease);
     }
-    [data-theme="dark"] .date-pill{background:rgba(255,255,255,.06)}
-    .date-pill:hover{background:var(--accent-soft);border-color:rgba(0,102,255,.25)}
+    .date-pill:hover{background:#f8f8fa}
+    .date-pill:focus-visible{outline:none;border-color:#0066cc;box-shadow:0 0 0 1px #0066cc}
+    [data-theme="dark"] .date-pill{
+      background:rgba(255,255,255,.08);
+      color:#f5f5f7;
+    }
     .date-picker-pop{
       position:fixed;z-index:1100;
       width:320px;
@@ -596,38 +623,223 @@
       transition:background .2s var(--ease),color .2s var(--ease);
     }
     .dp-foot button:hover{background:rgba(0,0,0,.05);color:#0071e3}
+    .time-title{font-size:16px;color:#86868b;font-weight:500;letter-spacing:-.02em;margin-bottom:10px}
+    [data-theme="dark"] .time-title{color:#a1a1aa}
     .time-card{
-      border:1px solid var(--hairline);border-radius:20px;padding:14px;background:rgba(255,255,255,.62);
+      height:56px;border-radius:28px;padding:0 20px;background:#f7f7f8;
+      display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;
+      border:1px solid transparent;
+      transition:background .24s var(--ease),border-color .24s var(--ease),box-shadow .24s var(--ease);
     }
-    [data-theme="dark"] .time-card{background:rgba(255,255,255,.04)}
-    .time-title{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:-.01em;margin-bottom:10px}
-    .time-row{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
-    .time-arrow{font-size:16px;color:var(--muted);padding:0 2px}
-    .time-input{
-      height:44px;border:1px solid var(--hairline);border-radius:14px;background:var(--card);
-      padding:0 12px;font-size:15px;font-weight:600;outline:none;color:var(--ink);
+    .time-card:hover{background:#fbfbfd}
+    .time-card:focus-within{border-color:#0066cc;box-shadow:0 0 0 1px #0066cc}
+    [data-theme="dark"] .time-card{
+      background:rgba(255,255,255,.08);
     }
+    [data-theme="dark"] .time-card:hover{background:rgba(255,255,255,.1)}
+    .time-pill-btn{
+      height:40px;border-radius:20px;background:transparent;
+      display:inline-flex;align-items:center;justify-content:center;
+      font-size:18px;font-weight:500;letter-spacing:-.01em;color:#1d1d1f;
+      transition:background .24s var(--ease),color .24s var(--ease);
+    }
+    .time-pill-btn:hover{background:rgba(0,0,0,.04)}
+    .time-pill-btn.empty{font-size:18px;font-weight:500;color:#8e8e93}
+    .time-arrow{
+      font-size:18px;color:#8e8e93;padding:0 6px;
+    }
+    [data-theme="dark"] .time-pill-btn{color:#f5f5f7}
+    [data-theme="dark"] .time-pill-btn.empty{color:#a1a1aa}
+    [data-theme="dark"] .time-pill-btn:hover{background:rgba(255,255,255,.08)}
+    [data-theme="dark"] .time-arrow{color:#a1a1aa}
+
+    .notes-card{border-radius:24px;background:#f7f7f8;padding:0 14px;overflow:hidden;transition:background .24s var(--ease)}
+    .notes-card:hover{background:#fafafc}
+    [data-theme="dark"] .notes-card{background:rgba(255,255,255,.08)}
+    [data-theme="dark"] .notes-card:hover{background:rgba(255,255,255,.1)}
     .notes-toggle{
-      border:1px dashed var(--hairline);border-radius:14px;padding:10px 12px;
-      font-size:13px;color:var(--muted);cursor:pointer;
+      height:48px;width:100%;border-radius:24px;
+      font-size:16px;font-weight:400;color:#86868b;cursor:pointer;
+      display:flex;align-items:center;justify-content:flex-start;gap:8px;
+      padding:0 8px;
     }
-    .notes-toggle:hover{color:var(--ink);border-color:rgba(0,102,255,.24);background:var(--accent-soft)}
-    .note-wrap{margin-top:10px}
+    .notes-toggle:hover{color:#1d1d1f}
+    [data-theme="dark"] .notes-toggle{color:#a1a1aa}
+    [data-theme="dark"] .notes-toggle:hover{color:#f5f5f7}
+    .note-wrap{
+      max-height:0;
+      opacity:0;
+      transform:translateY(-4px);
+      transition:max-height .28s var(--ease),opacity .28s var(--ease),transform .28s var(--ease),padding .28s var(--ease);
+      padding:0;
+    }
+    .notes-card.expanded .note-wrap{
+      max-height:150px;
+      opacity:1;
+      transform:translateY(0);
+      padding:8px 0 12px;
+    }
     .note-input{
-      width:100%;min-height:92px;resize:vertical;border:1px solid var(--hairline);border-radius:14px;background:var(--card);
-      padding:10px 12px;font-size:14px;color:var(--ink);outline:none;
+      width:100%;
+      height:120px;
+      resize:none;
+      border:1px solid transparent;
+      border-radius:20px;
+      background:#f8f8fa;
+      padding:16px;
+      font-family:inherit;
+      font-size:16px;
+      font-weight:400;
+      line-height:1.6;
+      color:#1d1d1f;
+      outline:none;
+      transition:background .24s var(--ease),border-color .24s var(--ease),box-shadow .24s var(--ease);
     }
-    .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+    .note-input::placeholder{color:#a1a1aa}
+    .note-input:hover{background:#fbfbfd}
+    .note-input:focus{border-color:#0066cc;box-shadow:0 0 0 1px #0066cc;background:#fff}
+    [data-theme="dark"] .note-input{
+      background:rgba(255,255,255,.08);
+      color:#f5f5f7;
+    }
+    [data-theme="dark"] .note-input::placeholder{color:#9b9ba3}
+    [data-theme="dark"] .note-input:hover{background:rgba(255,255,255,.1)}
+    [data-theme="dark"] .note-input:focus{border-color:#0066cc;box-shadow:0 0 0 1px #0066cc;background:rgba(255,255,255,.12)}
+    .note-foot{
+      margin-top:6px;
+      font-size:12px;
+      color:#a1a1aa;
+      text-align:right;
+      letter-spacing:-.01em;
+      padding-right:4px;
+    }
+    [data-theme="dark"] .note-foot{color:#8f8f97}
+
+    .modal-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:24px}
     .modal-btn-cancel{
-      height:40px;padding:0 14px;border-radius:999px;background:rgba(0,0,0,.04);color:var(--muted);font-size:13px;font-weight:600;
+      height:48px;padding:0 20px;border-radius:24px;background:#f2f2f5;color:#6e6e73;font-size:16px;font-weight:500;
+      transition:background .24s var(--ease),color .24s var(--ease);
     }
-    .modal-btn-cancel:hover{background:var(--hairline);color:var(--ink)}
+    .modal-btn-cancel:hover{background:#e9e9ed;color:#1d1d1f}
     .modal-btn-save{
-      height:40px;padding:0 18px;border-radius:999px;background:#0066ff;color:#fff;font-size:13px;font-weight:600;
-      box-shadow:0 8px 20px rgba(0,102,255,.28);
+      height:48px;padding:0 24px;border-radius:24px;background:#0066cc;color:#fff;font-size:16px;font-weight:500;
+      box-shadow:0 8px 20px rgba(0,102,204,.22);
+      transition:background .24s var(--ease),transform .24s var(--ease);
     }
-    .modal-btn-save:hover{background:#0b63ee}
-    .date-hidden-input{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
+    .modal-btn-save:hover{background:#0071e3}
+    .modal-btn-save:active{transform:scale(.985)}
+    [data-theme="dark"] .modal-btn-cancel{background:rgba(255,255,255,.1);color:#d1d1d6}
+    [data-theme="dark"] .modal-btn-cancel:hover{background:rgba(255,255,255,.16);color:#fff}
+    .date-hidden-input,.time-hidden-input{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
+
+    .time-picker-pop{
+      position:fixed;
+      z-index:1110;
+      width:340px;
+      border-radius:24px;
+      background:rgba(255,255,255,.95);
+      backdrop-filter:blur(18px);
+      box-shadow:0 16px 40px rgba(15,23,42,.12);
+      padding:14px 14px 12px;
+      opacity:0;
+      pointer-events:none;
+      transform:translateY(8px) scale(.98);
+      transition:opacity .22s var(--ease),transform .22s var(--ease);
+    }
+    .time-picker-pop.open{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+    [data-theme="dark"] .time-picker-pop{
+      background:rgba(34,34,38,.96);
+      box-shadow:0 16px 40px rgba(0,0,0,.44);
+    }
+    .tp-head{display:flex;align-items:center;justify-content:space-between}
+    .tp-title{font-size:14px;font-weight:600;color:#6e6e73;letter-spacing:-.01em}
+    .tp-close{
+      width:28px;height:28px;border-radius:10px;color:#86868b;display:grid;place-items:center;
+      transition:background .2s var(--ease),color .2s var(--ease);
+    }
+    .tp-close:hover{background:rgba(0,0,0,.06);color:#1d1d1f}
+    [data-theme="dark"] .tp-title{color:#a1a1aa}
+    [data-theme="dark"] .tp-close:hover{background:rgba(255,255,255,.08);color:#f5f5f7}
+    .tp-body{
+      margin-top:10px;
+      height:220px;
+      border-radius:18px;
+      background:#f8f8fa;
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
+      align-items:center;
+      position:relative;
+      overflow:hidden;
+    }
+    [data-theme="dark"] .tp-body{background:rgba(255,255,255,.06)}
+    .tp-focus{
+      position:absolute;
+      left:10px;right:10px;top:50%;
+      height:44px;
+      transform:translateY(-50%);
+      border-top:1px solid rgba(134,134,139,.26);
+      border-bottom:1px solid rgba(134,134,139,.26);
+      pointer-events:none;
+    }
+    .tp-col{
+      height:100%;
+      overflow-y:auto;
+      scroll-snap-type:y mandatory;
+      scrollbar-width:none;
+      padding:88px 0;
+      -ms-overflow-style:none;
+    }
+    .tp-col::-webkit-scrollbar{display:none}
+    .tp-item{
+      height:44px;
+      display:grid;
+      place-items:center;
+      scroll-snap-align:center;
+      font-size:18px;
+      font-weight:400;
+      color:rgba(161,161,170,.6);
+      letter-spacing:-.01em;
+      user-select:none;
+      transition:color .2s var(--ease),font-size .2s var(--ease),font-weight .2s var(--ease),opacity .2s var(--ease);
+    }
+    .tp-item.active{
+      font-size:24px;
+      font-weight:600;
+      color:#1d1d1f;
+      opacity:1;
+    }
+    [data-theme="dark"] .tp-item{color:rgba(161,161,170,.72)}
+    [data-theme="dark"] .tp-item.active{color:#f5f5f7}
+    .tp-sep{
+      font-size:24px;
+      font-weight:600;
+      color:#86868b;
+      padding:0 2px;
+      align-self:center;
+      justify-self:center;
+      transform:translateY(-1px);
+    }
+    [data-theme="dark"] .tp-sep{color:#a1a1aa}
+    .tp-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:12px;
+    }
+    .tp-btn{
+      height:34px;
+      padding:0 14px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:600;
+      transition:background .2s var(--ease),color .2s var(--ease);
+    }
+    .tp-btn.cancel{background:rgba(0,0,0,.05);color:#6e6e73}
+    .tp-btn.cancel:hover{background:rgba(0,0,0,.08);color:#1d1d1f}
+    .tp-btn.done{background:#0066cc;color:#fff}
+    .tp-btn.done:hover{background:#0071e3}
+    [data-theme="dark"] .tp-btn.cancel{background:rgba(255,255,255,.08);color:#d1d1d6}
+    [data-theme="dark"] .tp-btn.cancel:hover{background:rgba(255,255,255,.14);color:#fff}
     .all-mask{
       position:fixed;inset:0;z-index:96;
       background:rgba(8,10,14,.32);backdrop-filter:blur(6px);
@@ -816,8 +1028,10 @@
     [data-theme="dark"] .fav-main .dt{color:#c7c7cc}
     [data-theme="dark"] .fav-main .desc{color:#a7a7ad}
     @media (max-width:760px){
-      .add-dialog,.edit-dialog{width:min(700px,96vw);padding:18px;border-radius:22px}
-      .modal-title{font-size:26px}
+      .add-dialog,.edit-dialog{width:min(820px,96vw);padding:20px;border-radius:26px}
+      .modal-title{font-size:34px}
+      .time-pill-btn{font-size:17px}
+      .time-arrow{font-size:20px}
     }
 
     /* fade-up entrance */
@@ -875,7 +1089,6 @@
           <span class="brand-caret"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
         </div>
         <div class="top-actions">
-          <button class="ic-btn" id="btn-bell" title="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
           <div class="avatar" id="avatar">O</div>
         </div>
       </header>
@@ -1055,56 +1268,11 @@
     </div>
   </div>
 
-  <div class="edit-mask" id="edit-mask" aria-hidden="true">
-    <div class="edit-dialog" role="dialog" aria-modal="true" aria-labelledby="edit-title">
-      <div class="modal-head">
-        <div class="modal-title-wrap">
-          <div class="modal-title" id="edit-title">✏️ 编辑日程</div>
-          <div class="modal-sub" id="edit-subtitle">修改你的计划安排</div>
-        </div>
-        <button class="modal-close" id="edit-close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-      </div>
-
-      <div class="modal-section">
-        <div class="event-preview">
-          <div class="preview-title" id="edit-preview-title">产品评审会议</div>
-          <div class="preview-meta" id="edit-preview-date">📅 5月30日 周五</div>
-          <div class="preview-meta" id="edit-preview-time">🕘 15:00 - 16:00</div>
-        </div>
-      </div>
-
-      <div class="modal-section">
-        <input class="title-input" id="edit-title-input" type="text" data-i18n-ph="titlePlaceholder" placeholder="输入日程标题" />
-      </div>
-
-      <div class="modal-section">
-        <button class="date-pill" id="edit-date-pill" type="button">📅 <span id="edit-date-text">5月30日 周五</span></button>
-        <input id="edit-date-input" class="date-hidden-input" type="date" />
-      </div>
-
-      <div class="modal-section">
-        <div class="time-card">
-          <div class="time-title" id="edit-time-title" data-i18n="timeArrange">🕘 时间安排</div>
-          <div class="time-row">
-            <input class="time-input" id="edit-start-input" type="text" placeholder="09:30" />
-            <span class="time-arrow">→</span>
-            <input class="time-input" id="edit-end-input" type="text" placeholder="10:30" />
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-actions">
-        <button class="modal-btn-cancel" id="edit-cancel">取消</button>
-        <button class="modal-btn-save" id="edit-save">✨ 保存日程</button>
-      </div>
-    </div>
-  </div>
-
   <div class="add-mask" id="add-mask" aria-hidden="true">
     <div class="add-dialog" role="dialog" aria-modal="true" aria-labelledby="add-title">
       <div class="modal-head">
         <div class="modal-title-wrap">
-          <div class="modal-title" id="add-title">✨ 新建日程</div>
+          <div class="modal-title" id="add-title">新建日程</div>
           <div class="modal-sub" id="add-subtitle">快速安排新的计划，让 AI 帮你管理时间</div>
         </div>
         <button class="modal-close" id="add-close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
@@ -1120,27 +1288,103 @@
       </div>
 
       <div class="modal-section">
+        <div class="time-title" id="add-time-title" data-i18n="timeArrange">时间安排</div>
         <div class="time-card">
-          <div class="time-title" id="add-time-title" data-i18n="timeArrange">🕘 时间安排</div>
-          <div class="time-row">
-            <input class="time-input" id="add-start-input" type="text" placeholder="09:30" />
-            <span class="time-arrow">→</span>
-            <input class="time-input" id="add-end-input" type="text" placeholder="10:30" />
-          </div>
+          <button class="time-pill-btn empty" id="add-start-btn" type="button">--:--</button>
+          <span class="time-arrow">→</span>
+          <button class="time-pill-btn empty" id="add-end-btn" type="button">--:--</button>
+          <input class="time-hidden-input" id="add-start-input" type="text" />
+          <input class="time-hidden-input" id="add-end-input" type="text" />
         </div>
       </div>
 
       <div class="modal-section">
-        <div class="notes-toggle" id="add-note-toggle">＋ 添加备注</div>
-        <div class="note-wrap" id="add-note-wrap" style="display:none;">
-          <textarea class="note-input" id="add-desc-input" data-i18n-ph="notePlaceholder" placeholder="补充地点、提醒或备注信息"></textarea>
+        <div class="notes-card" id="add-notes-card">
+          <button class="notes-toggle" id="add-note-toggle" type="button">＋ 添加备注</button>
+          <div class="note-wrap" id="add-note-wrap">
+            <textarea class="note-input" id="add-desc-input" data-i18n-ph="notePlaceholder" placeholder="补充地点、提醒或备注信息"></textarea>
+            <div class="note-foot"><span id="add-note-count">0</span>/300</div>
+          </div>
         </div>
       </div>
 
       <div class="modal-actions">
         <button class="modal-btn-cancel" id="add-cancel">取消</button>
-        <button class="modal-btn-save" id="add-save">✨ 保存日程</button>
+        <button class="modal-btn-save" id="add-save">保存</button>
       </div>
+    </div>
+  </div>
+
+  <div class="edit-mask" id="edit-mask" aria-hidden="true">
+    <div class="edit-dialog" role="dialog" aria-modal="true" aria-labelledby="edit-title">
+      <div class="modal-head">
+        <div class="modal-title-wrap">
+          <div class="modal-title" id="edit-title">编辑日程</div>
+          <div class="modal-sub" id="edit-subtitle">修改你的计划安排</div>
+        </div>
+        <button class="modal-close" id="edit-close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+
+      <div class="modal-section">
+        <div class="edit-summary">
+          <div class="edit-summary-title" id="edit-summary-title">● 产品评审会议</div>
+          <div class="edit-summary-line" id="edit-summary-date">📅 5月30日 周六</div>
+          <div class="edit-summary-line" id="edit-summary-time">🕒 15:00 - 16:00</div>
+          <div class="edit-summary-line" id="edit-summary-note">📍 会议室A</div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <input class="title-input" id="edit-title-input" type="text" data-i18n-ph="titlePlaceholder" placeholder="输入日程标题" />
+      </div>
+
+      <div class="modal-section">
+        <button class="date-pill" id="edit-date-pill" type="button">📅 <span id="edit-date-text">5月30日 周五</span></button>
+        <input id="edit-date-input" class="date-hidden-input" type="date" />
+      </div>
+
+      <div class="modal-section">
+        <div class="time-title" id="edit-time-title" data-i18n="timeArrange">时间安排</div>
+        <div class="time-card">
+          <button class="time-pill-btn empty" id="edit-start-btn" type="button">--:--</button>
+          <span class="time-arrow">→</span>
+          <button class="time-pill-btn empty" id="edit-end-btn" type="button">--:--</button>
+          <input class="time-hidden-input" id="edit-start-input" type="text" />
+          <input class="time-hidden-input" id="edit-end-input" type="text" />
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="notes-card" id="edit-notes-card">
+          <button class="notes-toggle" id="edit-note-toggle" type="button">＋ 添加备注</button>
+          <div class="note-wrap" id="edit-note-wrap">
+            <textarea class="note-input" id="edit-desc-input" data-i18n-ph="notePlaceholder" placeholder="补充地点、提醒或备注信息"></textarea>
+            <div class="note-foot"><span id="edit-note-count">0</span>/300</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn-cancel" id="edit-cancel">取消</button>
+        <button class="modal-btn-save" id="edit-save">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="time-picker-pop" id="time-picker-pop" role="dialog" aria-modal="true" aria-label="Time picker">
+    <div class="tp-head">
+      <div class="tp-title" id="tp-title">选择时间</div>
+      <button class="tp-close" id="tp-close" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="tp-body">
+      <div class="tp-focus"></div>
+      <div class="tp-col" id="tp-hour-col"></div>
+      <div class="tp-sep">:</div>
+      <div class="tp-col" id="tp-minute-col"></div>
+    </div>
+    <div class="tp-actions">
+      <button class="tp-btn cancel" id="tp-cancel" type="button">取消</button>
+      <button class="tp-btn done" id="tp-done" type="button">完成</button>
     </div>
   </div>
 
@@ -1208,8 +1452,8 @@
         apiHint:"用于语音识别与 AI 解析。",
         apiPlaceholder:"请输入你的 API Key",
         titlePlaceholder:"输入日程标题",
-        notePlaceholder:"补充地点、提醒或备注信息",
-        timeArrange:"🕘 时间安排",
+        notePlaceholder:"添加更多说明、会议内容或提醒事项...",
+        timeArrange:"时间安排",
         save:"保存",
         cmdPlaceholder:"让 AI 帮你安排会议、检查冲突或规划一天…",
         greetMorning:"早上好，Olivia",
@@ -1248,6 +1492,10 @@
         addSub:"快速安排新的计划，让 AI 帮你管理时间",
         editSub:"修改你的计划安排",
         addNotesToggle:"＋ 添加备注",
+        tpTitleStart:"开始时间",
+        tpTitleEnd:"结束时间",
+        tpCancel:"取消",
+        tpDone:"完成",
         statusAll:"全部",
         statusTodo:"待完成",
         statusDone:"已完成",
@@ -1309,8 +1557,8 @@
         apiHint:"Used for speech recognition and AI parsing.",
         apiPlaceholder:"Enter your API Key",
         titlePlaceholder:"Enter schedule title",
-        notePlaceholder:"Add location, reminder, or note",
-        timeArrange:"🕘 Time Arrangement",
+        notePlaceholder:"Add more details, meeting context, or reminders...",
+        timeArrange:"Time",
         save:"Save",
         cmdPlaceholder:"Ask AI to schedule a meeting, check conflicts, or plan your day…",
         greetMorning:"Good morning, Olivia",
@@ -1349,6 +1597,10 @@
         addSub:"Quickly plan a new schedule, let AI manage your time",
         editSub:"Modify your current plan",
         addNotesToggle:"+ Add notes",
+        tpTitleStart:"Start time",
+        tpTitleEnd:"End time",
+        tpCancel:"Cancel",
+        tpDone:"Done",
         statusAll:"All",
         statusTodo:"Todo",
         statusDone:"Done",
@@ -1433,11 +1685,12 @@
       toast:$("toast"),mask:$("mask"),sheet:$("sheet"),sheetClose:$("sheet-close"),
       apiKey:$("api-key"),btnSave:$("btn-save"),
       confirmMask:$("confirm-mask"),confirmTitle:$("confirm-title"),confirmText:$("confirm-text"),confirmOk:$("confirm-ok"),confirmCancel:$("confirm-cancel"),
-      editMask:$("edit-mask"),editTitle:$("edit-title"),editClose:$("edit-close"),editTitleInput:$("edit-title-input"),editStartInput:$("edit-start-input"),editEndInput:$("edit-end-input"),editCancel:$("edit-cancel"),editSave:$("edit-save"),editDateInput:$("edit-date-input"),
-      addMask:$("add-mask"),addTitle:$("add-title"),addClose:$("add-close"),addDateInput:$("add-date-input"),addTitleInput:$("add-title-input"),addStartInput:$("add-start-input"),addEndInput:$("add-end-input"),addDescInput:$("add-desc-input"),addCancel:$("add-cancel"),addSave:$("add-save"),
-      addDatePill:$("add-date-pill"),addDateText:$("add-date-text"),addNoteToggle:$("add-note-toggle"),addNoteWrap:$("add-note-wrap"),
-      editSubtitle:$("edit-subtitle"),editPreviewTitle:$("edit-preview-title"),editPreviewDate:$("edit-preview-date"),editPreviewTime:$("edit-preview-time"),editDatePill:$("edit-date-pill"),editDateText:$("edit-date-text"),
+      editMask:$("edit-mask"),editTitle:$("edit-title"),editClose:$("edit-close"),editTitleInput:$("edit-title-input"),editStartInput:$("edit-start-input"),editEndInput:$("edit-end-input"),editStartBtn:$("edit-start-btn"),editEndBtn:$("edit-end-btn"),editCancel:$("edit-cancel"),editSave:$("edit-save"),editDateInput:$("edit-date-input"),editDescInput:$("edit-desc-input"),editNotesCard:$("edit-notes-card"),editNoteToggle:$("edit-note-toggle"),editNoteCount:$("edit-note-count"),editSummaryTitle:$("edit-summary-title"),editSummaryDate:$("edit-summary-date"),editSummaryTime:$("edit-summary-time"),editSummaryNote:$("edit-summary-note"),
+      addMask:$("add-mask"),addTitle:$("add-title"),addClose:$("add-close"),addDateInput:$("add-date-input"),addTitleInput:$("add-title-input"),addStartInput:$("add-start-input"),addEndInput:$("add-end-input"),addDescInput:$("add-desc-input"),addCancel:$("add-cancel"),addSave:$("add-save"),addNoteCount:$("add-note-count"),
+      addDatePill:$("add-date-pill"),addDateText:$("add-date-text"),addStartBtn:$("add-start-btn"),addEndBtn:$("add-end-btn"),addNoteToggle:$("add-note-toggle"),addNotesCard:$("add-notes-card"),
+      editSubtitle:$("edit-subtitle"),editDatePill:$("edit-date-pill"),editDateText:$("edit-date-text"),
       addSubtitle:$("add-subtitle"),
+      timePickerPop:$("time-picker-pop"),tpTitle:$("tp-title"),tpClose:$("tp-close"),tpHourCol:$("tp-hour-col"),tpMinuteCol:$("tp-minute-col"),tpCancel:$("tp-cancel"),tpDone:$("tp-done"),
       dpPop:$("date-picker-pop"),dpTitle:$("dp-title"),dpWeek:$("dp-week"),dpGrid:$("dp-grid"),dpPrev:$("dp-prev"),dpNext:$("dp-next"),dpToday:$("dp-today"),dpClear:$("dp-clear"),
       allMask:$("all-mask"),allTitle:$("all-title"),allSubtitle:$("all-subtitle"),allList:$("all-list"),allClose:$("all-close"),
       allSearch:$("all-search"),allTabs:$("all-tabs"),allExportLabel:$("all-export-label"),allExportBtn:$("all-export-btn"),
@@ -1445,7 +1698,7 @@
       allStatTotal:$("all-stat-total"),allStatTodo:$("all-stat-todo"),allStatDone:$("all-stat-done"),
       favMask:$("fav-mask"),favClose:$("fav-close"),favTitle:$("fav-title"),favSub:$("fav-sub"),favList:$("fav-list"),favPillTotal:$("fav-pill-total"),favPillWeek:$("fav-pill-week"),favPillMonth:$("fav-pill-month"),
       statusSeg:$("status-seg"),
-      navSettings:$("nav-settings"),btnBell:$("btn-bell"),
+      navSettings:$("nav-settings"),
       themeToggle:$("theme-toggle"),themeIcon:$("theme-icon"),themeSeg:$("theme-seg"),langSeg:$("lang-seg"),
       wave:$("wave"),avatar:$("avatar")
     };
@@ -1477,11 +1730,42 @@
     let datePickerTargetInput=null;
     let datePickerTargetText=null;
     let dateCursor=new Date(today.getFullYear(),today.getMonth(),1);
+    let timePickerOpen=false;
+    let timePickerAnchor=null;
+    let timePickerTargetInput=null;
+    let timePickerTargetBtn=null;
+    let timePickerHour=9;
+    let timePickerMinute=0;
+    let timePickerMinMinutes=null;
     const markedDateSet = new Set();
 
     const iso=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
     const parseISO=(s)=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
     const sameDay=(a,b)=>a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+    const pad2=(n)=>String(Math.max(0,Math.min(99,Number(n)||0))).padStart(2,"0");
+    const isValidHHMM=(v)=>/^\d{2}:\d{2}$/.test(v);
+    const toMinutes=(v)=>{
+      if(!isValidHHMM(v)) return null;
+      const [h,m]=v.split(":").map(Number);
+      return h*60+m;
+    };
+    const fromMinutes=(mins)=>{
+      const safe=Math.max(0,Math.min(1439,Number(mins)||0));
+      return {hour:Math.floor(safe/60),minute:safe%60};
+    };
+    const isEndBeforeStart=(start,end)=>{
+      const s=toMinutes(start);
+      const e=toMinutes(end);
+      if(s===null || e===null) return false;
+      return e<s;
+    };
+    const clampNote=(text)=>String(text||"").slice(0,300);
+    const updateNoteCount=(inputEl,countEl)=>{
+      if(!inputEl || !countEl) return;
+      const value=clampNote(inputEl.value);
+      if(value!==inputEl.value) inputEl.value=value;
+      countEl.textContent=String(value.length);
+    };
 
     function buildWave(){
       let h="";for(let i=0;i<46;i++){const hv=10+Math.round(Math.abs(Math.sin(i*.6))*44);const dl=(i*.05).toFixed(2);h+=`<span style="--h:${hv}px;animation-delay:${dl}s"></span>`;}
@@ -1644,6 +1928,7 @@
       el.dpPop.setAttribute("aria-hidden","true");
     }
     function openDatePicker(anchorEl,inputEl,textEl){
+      if(timePickerOpen) closeTimePicker();
       datePickerAnchor=anchorEl;
       datePickerTargetInput=inputEl;
       datePickerTargetText=textEl;
@@ -1654,6 +1939,130 @@
       datePickerOpen=true;
       el.dpPop.classList.add("open");
       el.dpPop.setAttribute("aria-hidden","false");
+    }
+    function setTimeButtonText(btn,inputVal){
+      if(!btn) return;
+      const v=(inputVal||"").trim();
+      btn.textContent=isValidHHMM(v)?v:"--:--";
+      btn.classList.toggle("empty",!isValidHHMM(v));
+    }
+    function positionTimePicker(){
+      if(!timePickerAnchor || !el.timePickerPop) return;
+      const rect=timePickerAnchor.getBoundingClientRect();
+      const popW=340;
+      const left=Math.min(window.innerWidth-popW-12,Math.max(12,rect.left+rect.width/2-popW/2));
+      const top=Math.min(window.innerHeight-286,rect.bottom+10);
+      el.timePickerPop.style.left=`${left}px`;
+      el.timePickerPop.style.top=`${Math.max(12,top)}px`;
+    }
+    function renderTimePickerItems(){
+      if(!el.tpHourCol || !el.tpMinuteCol) return;
+      const hourItems=Array.from({length:24},(_,i)=>`<div class="tp-item" data-hour="${i}">${pad2(i)}</div>`).join("");
+      const minuteItems=Array.from({length:12},(_,i)=>`<div class="tp-item" data-minute="${i*5}">${pad2(i*5)}</div>`).join("");
+      el.tpHourCol.innerHTML=hourItems;
+      el.tpMinuteCol.innerHTML=minuteItems;
+    }
+    function centerPickerToValue(col,attr,val){
+      const node=col?.querySelector(`.tp-item[data-${attr}="${Number(val)}"]`);
+      if(!node) return;
+      const target=node.offsetTop-(col.clientHeight-node.clientHeight)/2;
+      col.scrollTo({top:target,behavior:"smooth"});
+    }
+    function snapPickerCol(col,attr){
+      if(!col) return 0;
+      const center=col.scrollTop+col.clientHeight/2;
+      let best=null;
+      let bestDist=Infinity;
+      col.querySelectorAll(".tp-item").forEach((node)=>{
+        const mid=node.offsetTop+node.clientHeight/2;
+        const dist=Math.abs(mid-center);
+        if(dist<bestDist){bestDist=dist;best=node;}
+      });
+      if(!best) return 0;
+      const target=best.offsetTop-(col.clientHeight-best.clientHeight)/2;
+      col.scrollTo({top:target,behavior:"smooth"});
+      return Number(best.dataset[attr]||0);
+    }
+    function refreshTimePickerActive(){
+      el.tpHourCol?.querySelectorAll(".tp-item").forEach((n)=>n.classList.toggle("active",Number(n.dataset.hour)===timePickerHour));
+      el.tpMinuteCol?.querySelectorAll(".tp-item").forEach((n)=>n.classList.toggle("active",Number(n.dataset.minute)===timePickerMinute));
+    }
+    function enforceTimePickerMinForEnd(animate=true){
+      if(timePickerMinMinutes===null) return;
+      const current=timePickerHour*60+timePickerMinute;
+      if(current>=timePickerMinMinutes) return;
+      const next=fromMinutes(timePickerMinMinutes);
+      timePickerHour=next.hour;
+      timePickerMinute=next.minute;
+      refreshTimePickerActive();
+      centerPickerToValue(el.tpHourCol,"hour",timePickerHour);
+      centerPickerToValue(el.tpMinuteCol,"minute",timePickerMinute);
+    }
+    function closeTimePicker(){
+      timePickerOpen=false;
+      timePickerAnchor=null;
+      timePickerTargetInput=null;
+      timePickerTargetBtn=null;
+      timePickerMinMinutes=null;
+      if(el.timePickerPop){
+        el.timePickerPop.classList.remove("open");
+        el.timePickerPop.setAttribute("aria-hidden","true");
+      }
+    }
+    function openTimePicker(anchorEl,inputEl,btnEl,isEnd=false){
+      closeDatePicker();
+      const cur=(inputEl?.value||"").trim();
+      if(isValidHHMM(cur)){
+        const [h,m]=cur.split(":").map(Number);
+        timePickerHour=h;
+        timePickerMinute=Math.floor((m||0)/5)*5;
+      }else{
+        timePickerHour=isEnd?10:9;
+        timePickerMinute=30;
+      }
+      timePickerAnchor=anchorEl;
+      timePickerTargetInput=inputEl;
+      timePickerTargetBtn=btnEl;
+      if(isEnd){
+        const startInput = inputEl===el.addEndInput ? el.addStartInput : (inputEl===el.editEndInput ? el.editStartInput : null);
+        timePickerMinMinutes = startInput ? toMinutes(startInput.value) : null;
+      }else{
+        timePickerMinMinutes = null;
+      }
+      if(timePickerMinMinutes!==null){
+        const cur=timePickerHour*60+timePickerMinute;
+        if(cur<timePickerMinMinutes){
+          const next=fromMinutes(timePickerMinMinutes);
+          timePickerHour=next.hour;
+          timePickerMinute=next.minute;
+        }
+      }
+      if(el.tpTitle) el.tpTitle.textContent=t(isEnd?"tpTitleEnd":"tpTitleStart");
+      if(el.tpCancel) el.tpCancel.textContent=t("tpCancel");
+      if(el.tpDone) el.tpDone.textContent=t("tpDone");
+      renderTimePickerItems();
+      refreshTimePickerActive();
+      centerPickerToValue(el.tpHourCol,"hour",timePickerHour);
+      centerPickerToValue(el.tpMinuteCol,"minute",timePickerMinute);
+      positionTimePicker();
+      timePickerOpen=true;
+      el.timePickerPop.classList.add("open");
+      el.timePickerPop.setAttribute("aria-hidden","false");
+    }
+    function commitTimePicker(){
+      if(!timePickerTargetInput || !timePickerTargetBtn){ closeTimePicker(); return; }
+      const v=`${pad2(timePickerHour)}:${pad2(timePickerMinute)}`;
+      const isEndTarget=timePickerTargetInput===el.addEndInput || timePickerTargetInput===el.editEndInput;
+      const startInput = (timePickerTargetInput===el.addEndInput) ? el.addStartInput : (timePickerTargetInput===el.editEndInput ? el.editStartInput : null);
+      if(isEndTarget && startInput && isEndBeforeStart(startInput.value,v)){
+        showToast(isZh()?"结束时间不能早于开始时间":"End time cannot be earlier than start time");
+        return;
+      }
+      timePickerTargetInput.value=v;
+      setTimeButtonText(timePickerTargetBtn,v);
+      timePickerTargetInput.dispatchEvent(new Event("input"));
+      timePickerTargetInput.dispatchEvent(new Event("change"));
+      closeTimePicker();
     }
 
     function renderHero(){
@@ -2013,11 +2422,9 @@
       if(!ok) showToast(t("toast.deleteCanceled"));
       return ok;
     }
-    function isValidHHMM(v){
-      return /^\d{2}:\d{2}$/.test(v);
-    }
     function closeEditDialog(){
       if(datePickerOpen && datePickerAnchor===el.editDatePill) closeDatePicker();
+      if(timePickerOpen) closeTimePicker();
       el.editMask.classList.remove("open");
       el.editMask.setAttribute("aria-hidden","true");
       editingScheduleId=0;
@@ -2029,24 +2436,26 @@
       el.editTitleInput.value=item.title||"";
       el.editStartInput.value=item.startTime||"";
       el.editEndInput.value=item.endTime||"";
+      el.editDescInput.value=clampNote(item.desc||"");
       el.editTitleInput.placeholder=t("editLabelTitle");
       const d = parseISO(item.date||iso(today));
       el.editDateInput.value = iso(d);
-      el.editPreviewTitle.textContent=item.title||"";
-      el.editPreviewDate.textContent=`📅 ${fmtPillDate(d)}`;
-      el.editPreviewTime.textContent=`🕘 ${item.startTime||"--:--"} - ${item.endTime||"--:--"}`;
       el.editDateText.textContent=fmtPillDate(d);
-      el.editTitleInput.addEventListener("input",()=>{el.editPreviewTitle.textContent=el.editTitleInput.value||item.title||"";});
-      const syncEditTime=()=>{el.editPreviewTime.textContent=`🕘 ${el.editStartInput.value||"--:--"} - ${el.editEndInput.value||"--:--"}`;};
-      el.editStartInput.addEventListener("input",syncEditTime);
-      el.editEndInput.addEventListener("input",syncEditTime);
-      el.editStartInput.placeholder="09:30";
-      el.editEndInput.placeholder="10:30";
+      setTimeButtonText(el.editStartBtn,el.editStartInput.value);
+      setTimeButtonText(el.editEndBtn,el.editEndInput.value);
+      if(el.editSummaryTitle) el.editSummaryTitle.textContent=`● ${item.title||""}`;
+      if(el.editSummaryDate) el.editSummaryDate.textContent=`📅 ${fmtPillDate(d)}`;
+      if(el.editSummaryTime) el.editSummaryTime.textContent=`🕒 ${(item.startTime||"--:--")} - ${(item.endTime||"--:--")}`;
+      const noteText=(item.desc||"").trim();
+      if(el.editSummaryNote) el.editSummaryNote.textContent=noteText?`📍 ${noteText}`:(isZh()?"📍 暂无备注":"📍 No note");
+      if(el.editNotesCard) el.editNotesCard.classList.toggle("expanded",Boolean(noteText));
+      updateNoteCount(el.editDescInput,el.editNoteCount);
       el.editMask.classList.add("open");
       el.editMask.setAttribute("aria-hidden","false");
     }
     function closeAddDialog(){
       closeDatePicker();
+      closeTimePicker();
       el.addMask.classList.remove("open");
       el.addMask.setAttribute("aria-hidden","true");
     }
@@ -2066,7 +2475,10 @@
       el.addDescInput.value = "";
       el.addTitleInput.placeholder=t("titlePlaceholder");
       el.addDescInput.placeholder=t("notePlaceholder");
-      el.addNoteWrap.style.display="none";
+      if(el.addNotesCard) el.addNotesCard.classList.remove("expanded");
+      updateNoteCount(el.addDescInput,el.addNoteCount);
+      setTimeButtonText(el.addStartBtn,el.addStartInput.value);
+      setTimeButtonText(el.addEndBtn,el.addEndInput.value);
       el.addMask.classList.add("open");
       el.addMask.setAttribute("aria-hidden","false");
     }
@@ -2102,6 +2514,12 @@
       if(el.addSubtitle) el.addSubtitle.textContent=t("addSub");
       if(el.editSubtitle) el.editSubtitle.textContent=t("editSub");
       if(el.addNoteToggle) el.addNoteToggle.textContent=t("addNotesToggle");
+      if(el.tpCancel) el.tpCancel.textContent=t("tpCancel");
+      if(el.tpDone) el.tpDone.textContent=t("tpDone");
+      if(el.tpTitle && timePickerOpen){
+        const isEndTarget = timePickerTargetInput===el.addEndInput || timePickerTargetInput===el.editEndInput;
+        el.tpTitle.textContent=t(isEndTarget?"tpTitleEnd":"tpTitleStart");
+      }
       if(el.statusSeg){
         const allBtn=el.statusSeg.querySelector('[data-status-filter="all"]');
         const todoBtn=el.statusSeg.querySelector('[data-status-filter="todo"]');
@@ -2124,7 +2542,14 @@
       if(el.addTitleInput) el.addTitleInput.placeholder=t("titlePlaceholder");
       if(el.editTitleInput) el.editTitleInput.placeholder=t("titlePlaceholder");
       if(el.addDescInput) el.addDescInput.placeholder=t("notePlaceholder");
+      if(el.editDescInput) el.editDescInput.placeholder=t("notePlaceholder");
       if(datePickerOpen) renderDatePicker();
+      setTimeButtonText(el.addStartBtn,el.addStartInput?.value||"");
+      setTimeButtonText(el.addEndBtn,el.addEndInput?.value||"");
+      setTimeButtonText(el.editStartBtn,el.editStartInput?.value||"");
+      setTimeButtonText(el.editEndBtn,el.editEndInput?.value||"");
+      updateNoteCount(el.addDescInput,el.addNoteCount);
+      updateNoteCount(el.editDescInput,el.editNoteCount);
       renderAll();
     }
     function setLang(next){
@@ -2242,6 +2667,10 @@
       }
       if(newEnd && !isValidHHMM(newEnd)){
         showToast(t("editInvalidTime"));
+        return true;
+      }
+      if(newStart && newEnd && isEndBeforeStart(newStart,newEnd)){
+        showToast(isZh()?"结束时间不能早于开始时间":"End time cannot be earlier than start time");
         return true;
       }
       try{
@@ -2441,7 +2870,6 @@
       el.sheetClose.addEventListener("click",closeSheet);
       el.mask.addEventListener("click",closeSheet);
       el.btnSave.addEventListener("click",saveKey);
-      el.btnBell.addEventListener("click",()=>showToast(t("toast.noNotif")));
       el.viewAll.addEventListener("click",(ev)=>{ev.preventDefault();openAllSchedulesDialog();});
       el.allClose.addEventListener("click",closeAllSchedulesDialog);
       el.allMask.addEventListener("click",(ev)=>{ if(ev.target===el.allMask) closeAllSchedulesDialog(); });
@@ -2507,7 +2935,24 @@
         if(!el.editDateInput.value) return;
         const d = parseISO(el.editDateInput.value);
         el.editDateText.textContent=fmtPillDate(d);
-        el.editPreviewDate.textContent=`📅 ${fmtPillDate(d)}`;
+      });
+      el.editStartBtn.addEventListener("click",(ev)=>{
+        ev.preventDefault();
+        ev.stopPropagation();
+        if(timePickerOpen && timePickerAnchor===el.editStartBtn){
+          closeTimePicker();
+          return;
+        }
+        openTimePicker(el.editStartBtn,el.editStartInput,el.editStartBtn,false);
+      });
+      el.editEndBtn.addEventListener("click",(ev)=>{
+        ev.preventDefault();
+        ev.stopPropagation();
+        if(timePickerOpen && timePickerAnchor===el.editEndBtn){
+          closeTimePicker();
+          return;
+        }
+        openTimePicker(el.editEndBtn,el.editEndInput,el.editEndBtn,true);
       });
       el.editSave.addEventListener("click", async ()=>{
         if(!editingScheduleId) return;
@@ -2517,6 +2962,10 @@
         if(!title){ showToast(t("editTitleRequired")); return; }
         if(startTime && !isValidHHMM(startTime)){ showToast(t("editInvalidTime")); return; }
         if(endTime && !isValidHHMM(endTime)){ showToast(t("editInvalidTime")); return; }
+        if(startTime && endTime && isEndBeforeStart(startTime,endTime)){
+          showToast(isZh()?"结束时间不能早于开始时间":"End time cannot be earlier than start time");
+          return;
+        }
         try{
           await updateScheduleByIDDB(editingScheduleId, title, startTime, endTime);
           closeEditDialog();
@@ -2542,6 +2991,24 @@
       el.addDateInput.addEventListener("change",()=>{
         if(!el.addDateInput.value) return;
         el.addDateText.textContent=fmtPillDate(parseISO(el.addDateInput.value));
+      });
+      el.addStartBtn.addEventListener("click",(ev)=>{
+        ev.preventDefault();
+        ev.stopPropagation();
+        if(timePickerOpen && timePickerAnchor===el.addStartBtn){
+          closeTimePicker();
+          return;
+        }
+        openTimePicker(el.addStartBtn,el.addStartInput,el.addStartBtn,false);
+      });
+      el.addEndBtn.addEventListener("click",(ev)=>{
+        ev.preventDefault();
+        ev.stopPropagation();
+        if(timePickerOpen && timePickerAnchor===el.addEndBtn){
+          closeTimePicker();
+          return;
+        }
+        openTimePicker(el.addEndBtn,el.addEndInput,el.addEndBtn,true);
       });
       el.dpPrev.addEventListener("click",(ev)=>{
         ev.preventDefault();
@@ -2581,28 +3048,80 @@
         }
         closeDatePicker();
       });
-      window.addEventListener("resize",()=>{ if(datePickerOpen) positionDatePicker(); });
-      document.addEventListener("scroll",()=>{ if(datePickerOpen) positionDatePicker(); },true);
+      if(el.tpHourCol){
+        let hourScrollTimer=null;
+        el.tpHourCol.addEventListener("scroll",()=>{
+          clearTimeout(hourScrollTimer);
+          hourScrollTimer=setTimeout(()=>{
+            timePickerHour=snapPickerCol(el.tpHourCol,"hour");
+            enforceTimePickerMinForEnd();
+            refreshTimePickerActive();
+          },90);
+        });
+      }
+      if(el.tpMinuteCol){
+        let minuteScrollTimer=null;
+        el.tpMinuteCol.addEventListener("scroll",()=>{
+          clearTimeout(minuteScrollTimer);
+          minuteScrollTimer=setTimeout(()=>{
+            timePickerMinute=snapPickerCol(el.tpMinuteCol,"minute");
+            enforceTimePickerMinForEnd();
+            refreshTimePickerActive();
+          },90);
+        });
+      }
+      if(el.tpClose) el.tpClose.addEventListener("click",closeTimePicker);
+      if(el.tpCancel) el.tpCancel.addEventListener("click",closeTimePicker);
+      if(el.tpDone) el.tpDone.addEventListener("click",commitTimePicker);
+
+      window.addEventListener("resize",()=>{
+        if(datePickerOpen) positionDatePicker();
+        if(timePickerOpen) positionTimePicker();
+      });
+      document.addEventListener("scroll",()=>{
+        if(datePickerOpen) positionDatePicker();
+        if(timePickerOpen) positionTimePicker();
+      },true);
       document.addEventListener("click",(ev)=>{
         if(!datePickerOpen) return;
         if(el.dpPop.contains(ev.target)) return;
         if(datePickerAnchor && datePickerAnchor.contains(ev.target)) return;
         closeDatePicker();
       });
-      el.addNoteToggle.addEventListener("click",()=>{
-        const open = el.addNoteWrap.style.display!=="none";
-        el.addNoteWrap.style.display = open ? "none" : "block";
+      document.addEventListener("click",(ev)=>{
+        if(!timePickerOpen) return;
+        if(el.timePickerPop.contains(ev.target)) return;
+        if(timePickerAnchor && timePickerAnchor.contains(ev.target)) return;
+        closeTimePicker();
       });
+      el.addNoteToggle.addEventListener("click",()=>{
+        const expanded = el.addNotesCard.classList.toggle("expanded");
+        if(expanded){
+          requestAnimationFrame(()=>el.addDescInput?.focus());
+        }
+      });
+      el.editNoteToggle.addEventListener("click",()=>{
+        const expanded = el.editNotesCard.classList.toggle("expanded");
+        if(expanded){
+          requestAnimationFrame(()=>el.editDescInput?.focus());
+        }
+      });
+      el.addDescInput.addEventListener("input",()=>updateNoteCount(el.addDescInput,el.addNoteCount));
+      el.editDescInput.addEventListener("input",()=>updateNoteCount(el.editDescInput,el.editNoteCount));
       el.addSave.addEventListener("click", async ()=>{
         const date = (el.addDateInput.value||"").trim();
         const title = (el.addTitleInput.value||"").trim();
         const startTime = (el.addStartInput.value||"").trim();
         const endTime = (el.addEndInput.value||"").trim();
-        const desc = (el.addDescInput.value||"").trim();
+        const desc = clampNote((el.addDescInput.value||"").trim());
         if(!date){ showToast(t("addDateRequired")); return; }
         if(!title){ showToast(t("editTitleRequired")); return; }
         if(startTime && !isValidHHMM(startTime)){ showToast(t("editInvalidTime")); return; }
         if(endTime && !isValidHHMM(endTime)){ showToast(t("editInvalidTime")); return; }
+        if(startTime && endTime && isEndBeforeStart(startTime,endTime)){
+          showToast(isZh()?"结束时间不能早于开始时间":"End time cannot be earlier than start time");
+          return;
+        }
         try{
           await createScheduleDB({title,date,startTime,endTime,duration:0,desc:desc||title});
           closeAddDialog();
@@ -2635,11 +3154,13 @@
 
       document.addEventListener("keydown",(ev)=>{
         if(ev.key==="Escape" && el.addMask.classList.contains("open")){
+          if(timePickerOpen){ closeTimePicker(); return; }
           if(datePickerOpen){ closeDatePicker(); return; }
           closeAddDialog();
           return;
         }
         if(ev.key==="Escape" && el.editMask.classList.contains("open")){
+          if(timePickerOpen){ closeTimePicker(); return; }
           closeEditDialog();
           return;
         }

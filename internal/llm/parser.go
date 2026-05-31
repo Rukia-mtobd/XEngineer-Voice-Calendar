@@ -174,17 +174,15 @@ func extractMessageContent(raw json.RawMessage) string {
 }
 
 func buildSystemPrompt(ref time.Time) string {
-	weekdays := []string{"日", "一", "二", "三", "四", "五", "六"}
-	today := ref.Format("2006-01-02")
-	weekday := weekdays[int(ref.Weekday())]
+	_ = ref
 
-	return fmt.Sprintf(`你是日程解析器，只输出JSON数组，无任何解释。
+	return `你是日程解析器，只输出JSON数组，无任何解释。
 输出格式：[{"title":"","date":"YYYY-MM-DD","startTime":"HH:mm","endTime":"","duration":0,"desc":""}]
 规则：
 1. 必须从用户输入中提取明确的时间，如“下午三点”→"15:00"，禁止留空。
 2. 日期必须转换为YYYY-MM-DD格式，禁止留空。
 3. 无法解析时间时，也要返回空字符串""，不要用"全天"或null。
-4. 只输出JSON，不要其他内容。`, today, weekday)
+4. 只输出JSON，不要其他内容。`
 }
 
 func decodeScheduleJSONArray(content, source string, ref time.Time) ([]ParsedSchedule, error) {

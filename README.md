@@ -1,5 +1,5 @@
 # XEngineer Voice Calendar
-
+视频网站：https://www.bilibili.com/video/BV1bjVQ68Ek9/?vd_source=076850da6201a8755a8e1ec89b4b54cb
 基于 `Go + Wails v2` 的桌面语音日历应用。支持语音转文字、自然语言日程解析、日程新增/删除/更新、本地 SQLite 存储与导出 CSV。
 
 ## 功能概览

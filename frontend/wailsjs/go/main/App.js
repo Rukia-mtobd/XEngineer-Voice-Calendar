@@ -77,3 +77,7 @@ export function SetScheduleImportant(arg1, arg2) {
 export function UpdateScheduleByID(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['UpdateScheduleByID'](arg1, arg2, arg3, arg4);
 }
+
+export function UpdateScheduleByIDWithDesc(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['main']['App']['UpdateScheduleByIDWithDesc'](arg1, arg2, arg3, arg4, arg5);
+}

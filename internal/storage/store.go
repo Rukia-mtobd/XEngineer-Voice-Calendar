@@ -14,15 +14,15 @@ const defaultDBFile = "voice_calendar.db"
 
 // ScheduleRecord 是日程持久化模型。
 type ScheduleRecord struct {
-	ID         uint      `json:"id" gorm:"primaryKey"`
-	Date       string    `json:"date" gorm:"index;size:10;not null"` // YYYY-MM-DD
-	Title      string    `json:"title" gorm:"size:255;not null"`
-	StartTime  string    `json:"startTime" gorm:"size:8"`
-	EndTime    string    `json:"endTime" gorm:"size:8"`
-	Duration   int       `json:"duration"`
-	Desc       string    `json:"desc" gorm:"type:text"`
-	IsImportant bool     `json:"isImportant" gorm:"not null;default:false;index"`
-	CreatedAt  time.Time `json:"createdAt"`
+	ID          uint      `json:"id" gorm:"primaryKey"`
+	Date        string    `json:"date" gorm:"index;size:10;not null"` // YYYY-MM-DD
+	Title       string    `json:"title" gorm:"size:255;not null"`
+	StartTime   string    `json:"startTime" gorm:"size:8"`
+	EndTime     string    `json:"endTime" gorm:"size:8"`
+	Duration    int       `json:"duration"`
+	Desc        string    `json:"desc" gorm:"type:text"`
+	IsImportant bool      `json:"isImportant" gorm:"not null;default:false;index"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 func (ScheduleRecord) TableName() string {
@@ -139,6 +139,36 @@ func (s *Store) UpdateScheduleByID(id uint, title, startTime, endTime string) (S
 		"title":      title,
 		"start_time": startTime,
 		"end_time":   endTime,
+	}
+	if startTime != "" && endTime != "" {
+		updates["duration"] = calcDurationMinutes(startTime, endTime)
+	} else if endTime == "" {
+		updates["duration"] = 0
+	}
+
+	if err := s.db.Model(&ScheduleRecord{}).Where("id = ?", id).Updates(updates).Error; err != nil {
+		return ScheduleRecord{}, err
+	}
+
+	var row ScheduleRecord
+	if err := s.db.First(&row, id).Error; err != nil {
+		return ScheduleRecord{}, err
+	}
+	return row, nil
+}
+
+// UpdateScheduleByIDWithDesc 按 ID 更新标题、开始时间、结束时间和备注（结束时间可空）。
+func (s *Store) UpdateScheduleByIDWithDesc(id uint, title, startTime, endTime, desc string) (ScheduleRecord, error) {
+	title = strings.TrimSpace(title)
+	startTime = strings.TrimSpace(startTime)
+	endTime = strings.TrimSpace(endTime)
+	desc = strings.TrimSpace(desc)
+
+	updates := map[string]any{
+		"title":      title,
+		"start_time": startTime,
+		"end_time":   endTime,
+		"desc":       desc,
 	}
 	if startTime != "" && endTime != "" {
 		updates["duration"] = calcDurationMinutes(startTime, endTime)

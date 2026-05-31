@@ -243,6 +243,28 @@ func (a *App) UpdateScheduleByID(id uint, title, startTime, endTime string) (sto
 	return a.store.UpdateScheduleByID(id, title, startTime, endTime)
 }
 
+// UpdateScheduleByIDWithDesc 按 ID 更新标题、开始时间、结束时间和备注（结束时间可空）。
+func (a *App) UpdateScheduleByIDWithDesc(id uint, title, startTime, endTime, desc string) (storage.ScheduleRecord, error) {
+	if id == 0 {
+		return storage.ScheduleRecord{}, errors.New("id 不能为空")
+	}
+	title = strings.TrimSpace(title)
+	startTime = strings.TrimSpace(startTime)
+	endTime = strings.TrimSpace(endTime)
+	desc = strings.TrimSpace(desc)
+
+	if title == "" {
+		return storage.ScheduleRecord{}, errors.New("title 不能为空")
+	}
+	if startTime != "" && !validHHMM(startTime) {
+		return storage.ScheduleRecord{}, errors.New("startTime 格式必须为 HH:mm")
+	}
+	if endTime != "" && !validHHMM(endTime) {
+		return storage.ScheduleRecord{}, errors.New("endTime 格式必须为 HH:mm")
+	}
+	return a.store.UpdateScheduleByIDWithDesc(id, title, startTime, endTime, desc)
+}
+
 // SetScheduleImportant 设置某条日程是否为重要日程。
 func (a *App) SetScheduleImportant(id uint, important bool) (storage.ScheduleRecord, error) {
 	if id == 0 {

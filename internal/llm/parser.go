@@ -178,32 +178,13 @@ func buildSystemPrompt(ref time.Time) string {
 	today := ref.Format("2006-01-02")
 	weekday := weekdays[int(ref.Weekday())]
 
-	return fmt.Sprintf(`你是日程解析助手。请从用户的中文输入中提取日程信息，并只输出 JSON 数组（不要 markdown、不要解释）。
-
-当前参考日期：%s（星期%s）
-
-输出格式（数组，可包含 1 条或多条）：
-[
-  {
-    "title": "日程标题",
-    "date": "YYYY-MM-DD 或 null",
-    "startTime": "HH:mm 或 null",
-    "endTime": "HH:mm 或 null",
-    "duration": 120,
-    "desc": "该条日程对应的原文片段"
-  }
-]
-
+	return fmt.Sprintf(`你是日程解析器，只输出JSON数组，无任何解释。
+输出格式：[{"title":"","date":"YYYY-MM-DD","startTime":"HH:mm","endTime":"","duration":0,"desc":""}]
 规则：
-1. 一句话包含多个任务时必须拆成多条独立日程，禁止合并（如“明天开会，后天健身”→2条）
-2. 支持时间段解析（如“下午3点到5点”→ startTime=15:00, endTime=17:00, duration=120）
-3. 有 startTime 和 endTime 时，duration 为持续分钟数，需自动计算
-4. 仅有开始时间时，endTime 填 null，duration 可为 0 或 null
-5. 将“今天/明天/后天/下周一/5月30日”等转为 YYYY-MM-DD；无法识别填 null
-6. 时间统一为 24 小时制 HH:mm；无法识别填 null
-7. title 为核心事项；无法提取时用 desc 或原文
-8. desc 保留该条日程相关的原文片段；单条时可用完整原文
-9. 即使缺少日期或时间，也要生成日程条目，不要报错`, today, weekday)
+1. 必须从用户输入中提取明确的时间，如“下午三点”→"15:00"，禁止留空。
+2. 日期必须转换为YYYY-MM-DD格式，禁止留空。
+3. 无法解析时间时，也要返回空字符串""，不要用"全天"或null。
+4. 只输出JSON，不要其他内容。`, today, weekday)
 }
 
 func decodeScheduleJSONArray(content, source string, ref time.Time) ([]ParsedSchedule, error) {

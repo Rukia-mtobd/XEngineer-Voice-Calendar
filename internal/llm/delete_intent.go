@@ -24,6 +24,9 @@ func (c *Client) ParseDeleteIntent(apiKey, text string, ref time.Time) (DeleteIn
 	if text == "" {
 		return DeleteIntent{Action: "none"}, nil
 	}
+	if shouldIgnoreAsCreateForDelete(text) {
+		return DeleteIntent{Action: "none"}, nil
+	}
 
 	systemPrompt := buildDeleteIntentPrompt(ref)
 	reqBody := chatRequest{Model: defaultModel}
@@ -97,6 +100,41 @@ func (c *Client) ParseDeleteIntent(apiKey, text string, ref time.Time) (DeleteIn
 		intent.Action = "none"
 	}
 	return intent, nil
+}
+
+func shouldIgnoreAsCreateForDelete(text string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(text))
+	if normalized == "" {
+		return false
+	}
+	normalized = strings.ReplaceAll(normalized, " ", "")
+
+	createHints := []string{
+		"新建", "新增", "创建", "添加", "加个", "安排", "记一下", "记一个",
+		"add", "create", "new",
+	}
+	deleteHints := []string{
+		"删除", "删掉", "移除", "去掉", "取消", "清空",
+		"delete", "remove", "cancel",
+	}
+
+	hasCreate := false
+	for _, kw := range createHints {
+		if strings.Contains(normalized, kw) {
+			hasCreate = true
+			break
+		}
+	}
+	if !hasCreate {
+		return false
+	}
+
+	for _, kw := range deleteHints {
+		if strings.Contains(normalized, kw) {
+			return false
+		}
+	}
+	return true
 }
 
 func buildDeleteIntentPrompt(ref time.Time) string {

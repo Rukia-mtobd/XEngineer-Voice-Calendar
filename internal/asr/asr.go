@@ -72,7 +72,7 @@ func (c *Client) Recognize(apiKey, audioBase64, mimeType, format string) (string
 
 	dataURI := fmt.Sprintf("data:%s;base64,%s", mimeType, audioBase64)
 	body := recognizeRequest{
-		Model: "qwen3-asr-flash-realtime",
+		Model: "qwen3-asr-flash",
 		Input: recognizeInput{
 			Messages: []recognizeMessage{
 				{

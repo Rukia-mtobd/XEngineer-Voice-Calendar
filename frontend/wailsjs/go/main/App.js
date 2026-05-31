@@ -42,6 +42,10 @@ export function LoadApiKey() {
   return window['go']['main']['App']['LoadApiKey']();
 }
 
+export function ParseControlIntent(arg1) {
+  return window['go']['main']['App']['ParseControlIntent'](arg1);
+}
+
 export function ParseDeleteIntent(arg1) {
   return window['go']['main']['App']['ParseDeleteIntent'](arg1);
 }

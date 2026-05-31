@@ -24,6 +24,8 @@ export function ListSchedulesByDate(arg1:string):Promise<Array<storage.ScheduleR
 
 export function LoadApiKey():Promise<string>;
 
+export function ParseControlIntent(arg1:string):Promise<llm.ControlIntent>;
+
 export function ParseDeleteIntent(arg1:string):Promise<llm.DeleteIntent>;
 
 export function ParseSchedule(arg1:string):Promise<Array<llm.ParsedSchedule>>;

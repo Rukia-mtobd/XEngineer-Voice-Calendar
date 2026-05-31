@@ -1,5 +1,19 @@
 export namespace llm {
 	
+	export class ControlIntent {
+	    action: string;
+	    command: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ControlIntent(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.action = source["action"];
+	        this.command = source["command"];
+	    }
+	}
 	export class DeleteIntent {
 	    action: string;
 	    id: number;

@@ -364,7 +364,7 @@
       border:1px solid var(--hairline);
       border-radius:999px;
       box-shadow:var(--shadow-float);
-      z-index:40;
+      z-index:2200;
       transition:box-shadow .3s var(--ease),border-color .3s var(--ease),transform .3s var(--ease);
     }
     [data-theme="dark"] .cmd{background:rgba(26,26,28,.9)}
@@ -1496,6 +1496,18 @@
         tpTitleEnd:"结束时间",
         tpCancel:"取消",
         tpDone:"完成",
+        controlViewAll:"已打开全部日程",
+        controlViewTodo:"已筛选待完成日程",
+        controlViewDone:"已筛选已完成日程",
+        controlViewToday:"已切换到今日日程",
+        controlOpenSettings:"已打开设置",
+        controlCloseSettings:"已关闭设置",
+        controlOpenImportant:"已打开重要日程",
+        controlCloseImportant:"已关闭重要日程",
+        controlThemeDark:"已切换深色模式",
+        controlThemeLight:"已切换浅色模式",
+        controlGoHome:"已返回主页",
+        controlCloseAll:"已关闭全部日程",
         statusAll:"全部",
         statusTodo:"待完成",
         statusDone:"已完成",
@@ -1601,6 +1613,18 @@
         tpTitleEnd:"End time",
         tpCancel:"Cancel",
         tpDone:"Done",
+        controlViewAll:"Opened all schedules",
+        controlViewTodo:"Showing todo schedules",
+        controlViewDone:"Showing completed schedules",
+        controlViewToday:"Switched to today's schedules",
+        controlOpenSettings:"Opened settings",
+        controlCloseSettings:"Closed settings",
+        controlOpenImportant:"Opened important schedules",
+        controlCloseImportant:"Closed important schedules",
+        controlThemeDark:"Switched to dark mode",
+        controlThemeLight:"Switched to light mode",
+        controlGoHome:"Returned to home",
+        controlCloseAll:"Closed all schedules",
         statusAll:"All",
         statusTodo:"Todo",
         statusDone:"Done",
@@ -1665,6 +1689,7 @@
     const deleteSchedulesByDateDB = (date) => invokeBackend("DeleteSchedulesByDate", date);
     const parseDeleteIntentDB = (text) => invokeBackend("ParseDeleteIntent", text);
     const parseUpdateIntentDB = (text) => invokeBackend("ParseUpdateIntent", text);
+    const parseControlIntentDB = (text) => invokeBackend("ParseControlIntent", text);
     const updateScheduleByIDDB = (id,title,startTime,endTime) => invokeBackend("UpdateScheduleByID", id, title, startTime, endTime);
     const listImportantSchedulesDB = () => invokeBackend("ListImportantSchedules");
     const setScheduleImportantDB = (id, important) => invokeBackend("SetScheduleImportant", id, important);
@@ -1720,6 +1745,7 @@
     let favDialogOpen=false;
     let favoriteSchedules=[];
     let voiceTaskId=0;
+    let textTaskId=0;
     let isVoiceProcessing=false;
     let speechRec=null;
     let liveTranscriptActive=false;
@@ -2684,6 +2710,183 @@
       return true;
     }
 
+    async function tryControlByVoice(text){
+      let intent=null;
+      try{
+        intent = await parseControlIntentDB(text);
+      }catch(_){
+        return false;
+      }
+      if(!intent || intent.action!=="control") return false;
+
+      const cmd=String(intent.command||"").trim().toLowerCase();
+      if(!cmd) return false;
+      return runControlCommand(cmd);
+    }
+
+    function normalizeControlText(text){
+      return String(text||"")
+        .toLowerCase()
+        .replace(/[，。！？、,.!?]/g,"")
+        .replace(/\s+/g,"")
+        .trim();
+    }
+
+    async function runControlCommand(cmd){
+      switch(cmd){
+        case "view_all":
+          openAllSchedulesDialog();
+          showToast(t("controlViewAll"));
+          return true;
+        case "close_all":
+          closeAllSchedulesDialog();
+          showToast(t("controlCloseAll"));
+          return true;
+        case "view_todo":
+          openAllSchedulesDialog();
+          allDialogFilter="todo";
+          el.allTabs?.querySelectorAll(".sc-tab").forEach((x)=>x.classList.toggle("active",x.dataset.allFilter==="todo"));
+          renderAllSchedulesDialog();
+          showToast(t("controlViewTodo"));
+          return true;
+        case "view_done":
+          openAllSchedulesDialog();
+          allDialogFilter="done";
+          el.allTabs?.querySelectorAll(".sc-tab").forEach((x)=>x.classList.toggle("active",x.dataset.allFilter==="done"));
+          renderAllSchedulesDialog();
+          showToast(t("controlViewDone"));
+          return true;
+        case "view_today":
+          closeAllSchedulesDialog();
+          closeFavoritesDialog();
+          closeAddDialog();
+          closeEditDialog();
+          closeSheet();
+          selectedDate=new Date(today);
+          monthCursor=new Date(today.getFullYear(),today.getMonth(),1);
+          activeFilterDate=iso(today);
+          await fetchSchedulesByDate(activeFilterDate);
+          await refreshMarkedDatesForMonth(monthCursor);
+          renderAll();
+          showToast(t("controlViewToday"));
+          return true;
+        case "open_settings":
+          openSheet();
+          showToast(t("controlOpenSettings"));
+          return true;
+        case "close_settings":
+          closeSheet();
+          showToast(t("controlCloseSettings"));
+          return true;
+        case "open_important":
+          await openFavoritesDialog();
+          showToast(t("controlOpenImportant"));
+          return true;
+        case "close_important":
+          closeFavoritesDialog();
+          showToast(t("controlCloseImportant"));
+          return true;
+        case "theme_dark":
+          applyTheme("dark");
+          showToast(t("controlThemeDark"));
+          return true;
+        case "theme_light":
+          applyTheme("light");
+          showToast(t("controlThemeLight"));
+          return true;
+        case "go_home":
+          closeAllSchedulesDialog();
+          closeFavoritesDialog();
+          closeAddDialog();
+          closeEditDialog();
+          closeSheet();
+          activeFilterDate="";
+          await fetchAllSchedules();
+          await fetchAllSchedulesCache();
+          await refreshMarkedDatesForMonth(monthCursor);
+          renderAll();
+          showToast(t("controlGoHome"));
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    async function tryControlByKeyword(text){
+      const s=normalizeControlText(text);
+      if(!s) return false;
+
+      const hasAny=(arr)=>arr.some((k)=>s.includes(k));
+      if(hasAny(["关闭全部日程","关闭所有日程","关闭全部安排","关闭日程列表"])){
+        return runControlCommand("close_all");
+      }
+      if(hasAny(["查看全部日程","全部日程","所有日程","全部安排"])){
+        return runControlCommand("view_all");
+      }
+      if(hasAny(["查看待完成日程","待完成日程","待办日程","待办事项","待完成"])){
+        return runControlCommand("view_todo");
+      }
+      if(hasAny(["查看已完成日程","已完成日程","完成日程","已完成"])){
+        return runControlCommand("view_done");
+      }
+      if(hasAny(["查看今天日程","今日日程","今天安排","今天有什么"])){
+        return runControlCommand("view_today");
+      }
+      if(hasAny(["打开设置","进入设置","设置面板","打开偏好设置"])){
+        return runControlCommand("open_settings");
+      }
+      if(hasAny(["关闭设置","退出设置","收起设置","关掉设置"])){
+        return runControlCommand("close_settings");
+      }
+      if(hasAny(["关闭重要日程","关闭重要安排","关闭重要事项"])){
+        return runControlCommand("close_important");
+      }
+      if(hasAny(["打开重要日程","查看重要日程","重要日程","重要安排"])){
+        return runControlCommand("open_important");
+      }
+      if(hasAny(["切换黑色模式","切换深色模式","深色模式","黑色模式","夜间模式"])){
+        return runControlCommand("theme_dark");
+      }
+      if(hasAny(["切换浅色模式","浅色模式","明亮模式"])){
+        return runControlCommand("theme_light");
+      }
+      if(hasAny(["回到主页","返回主页","回到首页","返回首页","回首页"])){
+        return runControlCommand("go_home");
+      }
+      return false;
+    }
+
+    async function processTextCommand(query){
+      const v=(query||"").trim();
+      if(!v) return;
+      const taskId=++textTaskId;
+      isVoiceProcessing=true;
+      setSendButtonMode("stop");
+      try{
+        const handledControlByKeyword = await tryControlByKeyword(v);
+        if(taskId!==textTaskId) return;
+        if(handledControlByKeyword) return;
+        const handledControl = await tryControlByVoice(v);
+        if(taskId!==textTaskId) return;
+        if(handledControl) return;
+        const handledDelete = await tryDeleteByVoice(v);
+        if(taskId!==textTaskId) return;
+        if(handledDelete) return;
+        const handledUpdate = await tryUpdateByVoice(v);
+        if(taskId!==textTaskId) return;
+        if(handledUpdate) return;
+        await parseAndAdd(v);
+        if(taskId!==textTaskId) return;
+      }catch(err){
+        showToast(String(err));
+      }finally{
+        if(taskId===textTaskId){
+          isVoiceProcessing=false;
+          setSendButtonMode("send");
+        }
+      }
+    }
+
     async function recognize(blob,mime){
       showToast(t("toast.transcribing"));
       const taskId=++voiceTaskId;
@@ -2705,6 +2908,12 @@
         if(!query){ showToast(t("toast.noCatch")); return; }
         el.cmdInput.value=query;
 
+        const handledControlByKeyword = await tryControlByKeyword(query);
+        if(taskId!==voiceTaskId){ return; }
+        if(handledControlByKeyword) return;
+        const handledControl = await tryControlByVoice(query);
+        if(taskId!==voiceTaskId){ return; }
+        if(handledControl) return;
         const handledDelete = await tryDeleteByVoice(query);
         if(taskId!==voiceTaskId){ return; }
         if(handledDelete) return;
@@ -2789,6 +2998,7 @@
       }
       if(isVoiceProcessing){
         voiceTaskId++;
+        textTaskId++;
         isVoiceProcessing=false;
         el.micBtn.classList.remove("rec");
         setSendButtonMode("send");
@@ -2847,23 +3057,13 @@
         if(isVoiceProcessing){ cancelVoiceProcessing(); return; }
         const v=el.cmdInput.value.trim();
         if(!v) return;
-        tryDeleteByVoice(v).then((handledDelete)=>{
-          if(handledDelete) return;
-          return tryUpdateByVoice(v).then((handledUpdate)=>{
-            if(!handledUpdate) return parseAndAdd(v);
-          });
-        });
+        processTextCommand(v);
       });
       el.cmdInput.addEventListener("keydown",(ev)=>{
         if(ev.key!=="Enter") return;
         const v = el.cmdInput.value.trim();
         if(!v) return;
-        tryDeleteByVoice(v).then((handledDelete)=>{
-          if(handledDelete) return;
-          return tryUpdateByVoice(v).then((handledUpdate)=>{
-            if(!handledUpdate) return parseAndAdd(v);
-          });
-        });
+        processTextCommand(v);
       });
 
       el.navSettings.addEventListener("click",openSheet);
@@ -3153,6 +3353,16 @@
       });
 
       document.addEventListener("keydown",(ev)=>{
+        if(ev.key && ev.key.toLowerCase()==="t" && !ev.ctrlKey && !ev.metaKey && !ev.altKey){
+          const tag = document.activeElement?.tagName?.toLowerCase?.() || "";
+          const isTyping = tag==="input" || tag==="textarea" || document.activeElement?.isContentEditable;
+          if(!isTyping){
+            ev.preventDefault();
+            if(isRecording || isVoiceProcessing){ cancelVoiceProcessing(); return; }
+            startRecording();
+            return;
+          }
+        }
         if(ev.key==="Escape" && el.addMask.classList.contains("open")){
           if(timePickerOpen){ closeTimePicker(); return; }
           if(datePickerOpen){ closeDatePicker(); return; }

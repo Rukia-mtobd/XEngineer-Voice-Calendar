@@ -133,6 +133,18 @@ func (a *App) ParseUpdateIntent(text string) (llm.UpdateIntent, error) {
 	return a.llm.ParseUpdateIntent(apiKey, text, time.Now())
 }
 
+// ParseControlIntent 调用大模型识别界面控制意图。
+func (a *App) ParseControlIntent(text string) (llm.ControlIntent, error) {
+	apiKey, err := config.LoadApiKey()
+	if err != nil {
+		return llm.ControlIntent{}, err
+	}
+	if strings.TrimSpace(apiKey) == "" {
+		return llm.ControlIntent{}, errors.New("请先配置并保存阿里云 API Key")
+	}
+	return a.llm.ParseControlIntent(apiKey, text, time.Now())
+}
+
 // CreateSchedule 新增一条日程到 SQLite。
 func (a *App) CreateSchedule(item llm.ParsedSchedule) (storage.ScheduleRecord, error) {
 	rec := storage.ScheduleRecord{

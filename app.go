@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"xengineer-voice-calendar/internal/config"
 	"xengineer-voice-calendar/internal/llm"
 	"xengineer-voice-calendar/internal/storage"
+	"xengineer-voice-calendar/internal/tracing"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -54,6 +56,16 @@ func NewApp() *App {
 // startup 在应用启动时由 Wails 调用。
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	if err := tracing.Init(); err != nil {
+		fmt.Println("tracing init failed:", err)
+	}
+}
+
+func (a *App) traceCtx() context.Context {
+	if a.ctx != nil {
+		return a.ctx
+	}
+	return context.Background()
 }
 
 // Placeholder 预留的前后端通信占位方法，暂无业务逻辑。
@@ -99,54 +111,125 @@ func (a *App) RecognizeSpeech(audioBase64, mimeType, format string) (string, err
 
 // ParseSchedule 调用大模型将语音识别文本解析为结构化日程列表。
 func (a *App) ParseSchedule(text string) ([]llm.ParsedSchedule, error) {
+	ctx, span := tracing.StartSpan(a.traceCtx(), "app.ParseSchedule")
+	defer span.End()
+
 	apiKey, err := config.LoadApiKey()
 	if err != nil {
+		tracing.RecordError(ctx, err)
 		return nil, err
 	}
 	if strings.TrimSpace(apiKey) == "" {
-		return nil, errors.New("请先配置并保存阿里云 API Key")
+		err = errors.New("请先配置并保存阿里云 API Key")
+		tracing.RecordError(ctx, err)
+		return nil, err
 	}
-	return a.llm.ParseSchedule(apiKey, text, time.Now())
+
+	tracing.SetAttrs(ctx, map[string]string{"input.text": text})
+	out, err := a.llm.ParseSchedule(ctx, apiKey, text, time.Now())
+	if err != nil {
+		tracing.RecordError(ctx, err)
+		return nil, err
+	}
+	if b, mErr := json.Marshal(out); mErr == nil {
+		tracing.Event(ctx, "app.parse_schedule.done", map[string]string{
+			"result": string(b),
+			"count":  fmt.Sprintf("%d", len(out)),
+		})
+	}
+	return out, nil
 }
 
 // ParseDeleteIntent 调用大模型识别删除意图与匹配条件。
 func (a *App) ParseDeleteIntent(text string) (llm.DeleteIntent, error) {
+	ctx, span := tracing.StartSpan(a.traceCtx(), "app.ParseDeleteIntent")
+	defer span.End()
+
 	apiKey, err := config.LoadApiKey()
 	if err != nil {
+		tracing.RecordError(ctx, err)
 		return llm.DeleteIntent{}, err
 	}
 	if strings.TrimSpace(apiKey) == "" {
-		return llm.DeleteIntent{}, errors.New("请先配置并保存阿里云 API Key")
+		err = errors.New("请先配置并保存阿里云 API Key")
+		tracing.RecordError(ctx, err)
+		return llm.DeleteIntent{}, err
 	}
-	return a.llm.ParseDeleteIntent(apiKey, text, time.Now())
+	tracing.SetAttrs(ctx, map[string]string{"input.text": text})
+	out, err := a.llm.ParseDeleteIntent(ctx, apiKey, text, time.Now())
+	if err != nil {
+		tracing.RecordError(ctx, err)
+		return llm.DeleteIntent{}, err
+	}
+	if b, mErr := json.Marshal(out); mErr == nil {
+		tracing.Event(ctx, "app.parse_delete_intent.done", map[string]string{"intent": string(b)})
+	}
+	return out, nil
 }
 
 // ParseUpdateIntent 调用大模型识别修改意图与更新字段。
 func (a *App) ParseUpdateIntent(text string) (llm.UpdateIntent, error) {
+	ctx, span := tracing.StartSpan(a.traceCtx(), "app.ParseUpdateIntent")
+	defer span.End()
+
 	apiKey, err := config.LoadApiKey()
 	if err != nil {
+		tracing.RecordError(ctx, err)
 		return llm.UpdateIntent{}, err
 	}
 	if strings.TrimSpace(apiKey) == "" {
-		return llm.UpdateIntent{}, errors.New("请先配置并保存阿里云 API Key")
+		err = errors.New("请先配置并保存阿里云 API Key")
+		tracing.RecordError(ctx, err)
+		return llm.UpdateIntent{}, err
 	}
-	return a.llm.ParseUpdateIntent(apiKey, text, time.Now())
+	tracing.SetAttrs(ctx, map[string]string{"input.text": text})
+	out, err := a.llm.ParseUpdateIntent(ctx, apiKey, text, time.Now())
+	if err != nil {
+		tracing.RecordError(ctx, err)
+		return llm.UpdateIntent{}, err
+	}
+	if b, mErr := json.Marshal(out); mErr == nil {
+		tracing.Event(ctx, "app.parse_update_intent.done", map[string]string{"intent": string(b)})
+	}
+	return out, nil
 }
 
 // ParseControlIntent 调用大模型识别界面控制意图。
 func (a *App) ParseControlIntent(text string) (llm.ControlIntent, error) {
+	ctx, span := tracing.StartSpan(a.traceCtx(), "app.ParseControlIntent")
+	defer span.End()
+
 	apiKey, err := config.LoadApiKey()
 	if err != nil {
+		tracing.RecordError(ctx, err)
 		return llm.ControlIntent{}, err
 	}
 	if strings.TrimSpace(apiKey) == "" {
-		return llm.ControlIntent{}, errors.New("请先配置并保存阿里云 API Key")
+		err = errors.New("请先配置并保存阿里云 API Key")
+		tracing.RecordError(ctx, err)
+		return llm.ControlIntent{}, err
 	}
-	return a.llm.ParseControlIntent(apiKey, text, time.Now())
+	tracing.SetAttrs(ctx, map[string]string{"input.text": text})
+	out, err := a.llm.ParseControlIntent(ctx, apiKey, text, time.Now())
+	if err != nil {
+		tracing.RecordError(ctx, err)
+		return llm.ControlIntent{}, err
+	}
+	if b, mErr := json.Marshal(out); mErr == nil {
+		tracing.Event(ctx, "app.parse_control_intent.done", map[string]string{"intent": string(b)})
+	}
+	return out, nil
 }
 
 // CreateSchedule 新增一条日程到 SQLite。
 func (a *App) CreateSchedule(item llm.ParsedSchedule) (storage.ScheduleRecord, error) {
+	ctx, span := tracing.StartSpan(a.traceCtx(), "app.CreateSchedule")
+	defer span.End()
+
+	if b, err := json.Marshal(item); err == nil {
+		tracing.Event(ctx, "app.create_schedule.input", map[string]string{"schedule": string(b)})
+	}
+
 	rec := storage.ScheduleRecord{
 		Date:      strings.TrimSpace(item.Date),
 		Title:     strings.TrimSpace(item.Title),
@@ -159,9 +242,19 @@ func (a *App) CreateSchedule(item llm.ParsedSchedule) (storage.ScheduleRecord, e
 		return storage.ScheduleRecord{}, errors.New("date 不能为空")
 	}
 	if rec.Title == "" {
-		return storage.ScheduleRecord{}, errors.New("title 不能为空")
+		err := errors.New("title 不能为空")
+		tracing.RecordError(ctx, err)
+		return storage.ScheduleRecord{}, err
 	}
-	return a.store.CreateSchedule(rec)
+	out, err := a.store.CreateSchedule(rec)
+	if err != nil {
+		tracing.RecordError(ctx, err)
+		return storage.ScheduleRecord{}, err
+	}
+	if b, mErr := json.Marshal(out); mErr == nil {
+		tracing.Event(ctx, "app.create_schedule.done", map[string]string{"record": string(b)})
+	}
+	return out, nil
 }
 
 // ListSchedules 查询全部日程。

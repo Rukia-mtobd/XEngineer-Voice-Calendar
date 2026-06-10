@@ -9,7 +9,8 @@
 *.dylib
 *.test
 *.out
-
+*.md
+    
 # ------------------------------
 # Go coverage / workspace
 # ------------------------------
@@ -45,3 +46,5 @@ Thumbs.db
 .env.*
 config.json
 **/config.json
+voice_calendar_trace.jsonl
+**/voice_calendar_trace.jsonl

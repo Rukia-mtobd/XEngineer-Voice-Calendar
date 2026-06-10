@@ -1,13 +1,13 @@
 package llm
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"strings"
 	"time"
+
+	"xengineer-voice-calendar/internal/tracing"
 )
 
 // DeleteIntent 是删除语义识别结果。
@@ -19,77 +19,33 @@ type DeleteIntent struct {
 	Title  string `json:"title"`
 }
 
-func (c *Client) ParseDeleteIntent(apiKey, text string, ref time.Time) (DeleteIntent, error) {
+func (c *Client) ParseDeleteIntent(ctx context.Context, apiKey, text string, ref time.Time) (DeleteIntent, error) {
 	text = strings.TrimSpace(text)
 	if text == "" {
 		return DeleteIntent{Action: "none"}, nil
 	}
 	if shouldIgnoreAsCreateForDelete(text) {
+		tracing.Event(ctx, "llm.delete_skipped", map[string]string{
+			"reason": "create_keyword_guard",
+			"text":   text,
+		})
 		return DeleteIntent{Action: "none"}, nil
 	}
 
 	systemPrompt := buildDeleteIntentPrompt(ref)
-	reqBody := chatRequest{Model: defaultModel}
-	reqBody.Input.Messages = []chatMessage{
-		{Role: "system", Content: systemPrompt},
-		{Role: "user", Content: text},
-	}
-	reqBody.Parameters.ResultFormat = "message"
-
-	payload, err := json.Marshal(reqBody)
+	content, _, err := c.invokeLLM(ctx, "llm.ParseDeleteIntent", apiKey, systemPrompt, text)
 	if err != nil {
 		return DeleteIntent{}, err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, generationURL, bytes.NewReader(payload))
-	if err != nil {
-		return DeleteIntent{}, err
-	}
-	req.Header.Set("Authorization", "Bearer "+apiKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return DeleteIntent{}, fmt.Errorf("调用大模型接口失败: %w", err)
-	}
-	defer resp.Body.Close()
-
-	raw, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return DeleteIntent{}, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return DeleteIntent{}, fmt.Errorf("大模型接口返回 %d: %s", resp.StatusCode, string(raw))
-	}
-
-	var result chatResponse
-	if err := json.Unmarshal(raw, &result); err != nil {
-		return DeleteIntent{}, fmt.Errorf("解析大模型响应失败: %w", err)
-	}
-	if result.Code != "" && result.Code != "Success" {
-		return DeleteIntent{}, fmt.Errorf("大模型调用失败: %s", result.Message)
-	}
-
-	content := ""
-	if len(result.Output.Choices) > 0 {
-		content = extractMessageContent(result.Output.Choices[0].Message.Content)
-	} else {
-		content = strings.TrimSpace(result.Output.Text)
 	}
 	if strings.TrimSpace(content) == "" {
 		return DeleteIntent{Action: "none"}, nil
 	}
 
-	content = strings.TrimSpace(content)
-	if strings.HasPrefix(content, "```") {
-		content = strings.TrimPrefix(content, "```json")
-		content = strings.TrimPrefix(content, "```")
-		content = strings.TrimSuffix(content, "```")
-		content = strings.TrimSpace(content)
-	}
+	content = stripMarkdownFence(content)
 
 	var intent DeleteIntent
 	if err := json.Unmarshal([]byte(content), &intent); err != nil {
+		tracing.RecordError(ctx, err)
 		return DeleteIntent{}, fmt.Errorf("解析删除意图 JSON 失败: %w", err)
 	}
 
@@ -99,6 +55,13 @@ func (c *Client) ParseDeleteIntent(apiKey, text string, ref time.Time) (DeleteIn
 	if intent.Action != "delete" {
 		intent.Action = "none"
 	}
+
+	if b, mErr := json.Marshal(intent); mErr == nil {
+		tracing.Event(ctx, "llm.delete_intent_result", map[string]string{
+			"intent": string(b),
+		})
+	}
+
 	return intent, nil
 }
 
@@ -160,4 +123,15 @@ func buildDeleteIntentPrompt(ref time.Time) string {
 4) 若用户说“删除明天下午三点的项目会”，则 action=delete，date=对应日期，title=项目会（可去掉时间词）
 5) 未提及 id 时 id=0；未提及标题 title=""；无法识别日期时 date=""
 6) 只输出 JSON 对象`, today, weekday)
+}
+
+func stripMarkdownFence(content string) string {
+	content = strings.TrimSpace(content)
+	if strings.HasPrefix(content, "```") {
+		content = strings.TrimPrefix(content, "```json")
+		content = strings.TrimPrefix(content, "```")
+		content = strings.TrimSuffix(content, "```")
+		content = strings.TrimSpace(content)
+	}
+	return content
 }

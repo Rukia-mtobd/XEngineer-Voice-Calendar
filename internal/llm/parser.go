@@ -1,18 +1,19 @@
 package llm
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
+
+	"xengineer-voice-calendar/internal/tracing"
 )
 
-const generationURL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
-const defaultModel = "qwen3.6-flash"
+const generationURL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
+const defaultModel = "qwen-turbo"
 
 // ParsedSchedule 大模型解析后的单条结构化日程。
 type ParsedSchedule struct {
@@ -73,77 +74,76 @@ type rawSchedule struct {
 }
 
 // ParseSchedule 调用通义千问，将自然语言文本解析为结构化日程列表。
-func (c *Client) ParseSchedule(apiKey, text string, ref time.Time) ([]ParsedSchedule, error) {
+func (c *Client) ParseSchedule(ctx context.Context, apiKey, text string, ref time.Time) ([]ParsedSchedule, error) {
 	text = strings.TrimSpace(text)
 	if text == "" {
 		return nil, fmt.Errorf("输入文本为空")
 	}
 
+	tracing.SetAttrs(ctx, map[string]string{
+		"ref_date": ref.Format("2006-01-02"),
+	})
+
 	systemPrompt := buildSystemPrompt(ref)
-	reqBody := chatRequest{Model: defaultModel}
-	reqBody.Input.Messages = []chatMessage{
-		{Role: "system", Content: systemPrompt},
-		{Role: "user", Content: text},
-	}
-	reqBody.Parameters.ResultFormat = "message"
-
-	payload, err := json.Marshal(reqBody)
+	content, _, err := c.invokeLLM(ctx, "llm.ParseSchedule", apiKey, systemPrompt, text)
 	if err != nil {
 		return nil, err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, generationURL, bytes.NewReader(payload))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", "Bearer "+apiKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("调用大模型接口失败: %w", err)
-	}
-	defer resp.Body.Close()
-
-	raw, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("大模型接口返回 %d: %s", resp.StatusCode, string(raw))
-	}
-
-	var result chatResponse
-	if err := json.Unmarshal(raw, &result); err != nil {
-		return nil, fmt.Errorf("解析大模型响应失败: %w", err)
-	}
-	if result.Code != "" && result.Code != "Success" {
-		return nil, fmt.Errorf("大模型调用失败: %s", result.Message)
-	}
-
-	content := ""
-	if len(result.Output.Choices) > 0 {
-		content = extractMessageContent(result.Output.Choices[0].Message.Content)
-	} else {
-		content = strings.TrimSpace(result.Output.Text)
 	}
 	if strings.TrimSpace(content) == "" {
-		return nil, fmt.Errorf("大模型返回内容为空")
+		err = fmt.Errorf("大模型返回内容为空")
+		tracing.RecordError(ctx, err)
+		return nil, err
 	}
+
+	jsonStr := extractJSONArray(content)
+	tracing.Event(ctx, "llm.json_extracted", map[string]string{
+		"json_array": jsonStr,
+	})
 
 	schedules, err := decodeScheduleJSONArray(content, text, ref)
 	if err != nil {
+		tracing.RecordError(ctx, err)
 		return nil, fmt.Errorf("解析日程 JSON 失败: %w", err)
 	}
+
+	if b, mErr := json.Marshal(schedules); mErr == nil {
+		tracing.Event(ctx, "llm.decoded_schedules", map[string]string{
+			"items": string(b),
+			"count": fmt.Sprintf("%d", len(schedules)),
+		})
+	}
+
 	if len(schedules) == 0 {
-		return []ParsedSchedule{fallbackSchedule(text, ref)}, nil
+		fb := fallbackSchedule(text, ref)
+		tracing.Event(ctx, "llm.fallback_schedule", map[string]string{
+			"title": fb.Title,
+			"date":  fb.Date,
+		})
+		return []ParsedSchedule{fb}, nil
 	}
 
 	normalized := make([]ParsedSchedule, 0, len(schedules))
-	for _, item := range schedules {
-		normalized = append(normalized, normalizeSchedule(item, text, ref))
+	for i, item := range schedules {
+		before := item
+		norm := normalizeSchedule(item, text, ref)
+		normalized = append(normalized, norm)
+		tracing.Event(ctx, "llm.normalize_schedule", map[string]string{
+			"index":        fmt.Sprintf("%d", i),
+			"before_date":  before.Date,
+			"after_date":   norm.Date,
+			"before_title": before.Title,
+			"after_title":  norm.Title,
+			"start_time":   norm.StartTime,
+			"end_time":     norm.EndTime,
+		})
 	}
+
+	if b, mErr := json.Marshal(normalized); mErr == nil {
+		tracing.Event(ctx, "llm.normalized_result", map[string]string{
+			"result": string(b),
+		})
+	}
+
 	return normalized, nil
 }
 
@@ -174,15 +174,28 @@ func extractMessageContent(raw json.RawMessage) string {
 }
 
 func buildSystemPrompt(ref time.Time) string {
-	_ = ref
+	weekdays := []string{"日", "一", "二", "三", "四", "五", "六"}
+	today := ref.Format("2006-01-02")
+	weekday := weekdays[int(ref.Weekday())]
 
-	return `你是日程解析器，只输出JSON数组，无任何解释。
-输出格式：[{"title":"","date":"YYYY-MM-DD","startTime":"HH:mm","endTime":"","duration":0,"desc":""}]
+	return fmt.Sprintf(`你是日程解析器，只输出JSON数组，无任何解释。
+
+当前参考日期（今天）：%s（星期%s）
+
+输出格式：[{"title":"事件标题","date":"YYYY-MM-DD","startTime":"HH:mm","endTime":"","duration":0,"desc":""}]
+
 规则：
-1. 必须从用户输入中提取明确的时间，如“下午三点”→"15:00"，禁止留空。
-2. 日期必须转换为YYYY-MM-DD格式，禁止留空。
-3. 无法解析时间时，也要返回空字符串""，不要用"全天"或null。
-4. 只输出JSON，不要其他内容。`
+1. title（必填）：提炼日程核心主题，2-8字为宜；去掉日期、星期、相对时间、具体时刻等时间词，保留事件本身。
+   - 「明天下午三点吃饭」→ title="吃饭"
+   - 「后天上午十点开会」→ title="开会"
+   - 「周五晚上健身」→ title="健身"
+   - 「记一下买牛奶」→ title="买牛奶"
+   title 禁止留空，禁止把整句原文当作 title。
+2. desc：可写补充说明；无补充时可用空字符串，不要把 desc 当作 title 的替代品。
+3. startTime：必须从输入提取明确时刻，如「下午三点」→"15:00"；用户未提时间则返回""。
+4. date：转为 YYYY-MM-DD；相对日期基于参考日：今天=参考日，明天=+1天，后天=+2天，昨天=-1天。
+5. 未提及年份时使用参考日期的年份，禁止默认 2024 或其他历史年份。
+6. 无法解析日期时 date="" ；只输出 JSON，不要 markdown 或解释。`, today, weekday)
 }
 
 func decodeScheduleJSONArray(content, source string, ref time.Time) ([]ParsedSchedule, error) {
@@ -232,7 +245,7 @@ func normalizeSchedule(item ParsedSchedule, source string, ref time.Time) Parsed
 		item.Desc = source
 	}
 
-	item.Date = normalizeDate(item.Date)
+	item.Date = coerceScheduleDate(item.Date, ref)
 	if item.Date == "" {
 		item.Date = ref.Format("2006-01-02")
 	}
@@ -332,6 +345,24 @@ func normalizeDate(s string) string {
 		return s
 	}
 	return ""
+}
+
+// coerceScheduleDate 校验并修正 LLM 返回的日期（常见误写为 2024 等训练数据年份）。
+func coerceScheduleDate(s string, ref time.Time) string {
+	s = normalizeDate(s)
+	if s == "" {
+		return ""
+	}
+	parsed, err := time.ParseInLocation("2006-01-02", s, ref.Location())
+	if err != nil {
+		return ""
+	}
+	refYear := ref.Year()
+	// 年份偏离参考年超过 1 年时，保留月日、改用参考年（用户未说年份的场景）
+	if parsed.Year() < refYear-1 || parsed.Year() > refYear+1 {
+		parsed = time.Date(refYear, parsed.Month(), parsed.Day(), 0, 0, 0, 0, ref.Location())
+	}
+	return parsed.Format("2006-01-02")
 }
 
 func normalizeTime(s string) string {

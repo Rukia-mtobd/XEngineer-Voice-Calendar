@@ -1,13 +1,13 @@
 package llm
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"strings"
 	"time"
+
+	"xengineer-voice-calendar/internal/tracing"
 )
 
 // ControlIntent 是界面控制类语音意图识别结果。
@@ -17,87 +17,47 @@ type ControlIntent struct {
 	Command string `json:"command"`
 }
 
-func (c *Client) ParseControlIntent(apiKey, text string, ref time.Time) (ControlIntent, error) {
+func (c *Client) ParseControlIntent(ctx context.Context, apiKey, text string, ref time.Time) (ControlIntent, error) {
 	text = strings.TrimSpace(text)
 	if text == "" {
 		return ControlIntent{Action: "none"}, nil
 	}
 
 	systemPrompt := buildControlIntentPrompt(ref)
-	reqBody := chatRequest{Model: defaultModel}
-	reqBody.Input.Messages = []chatMessage{
-		{Role: "system", Content: systemPrompt},
-		{Role: "user", Content: text},
-	}
-	reqBody.Parameters.ResultFormat = "message"
-
-	payload, err := json.Marshal(reqBody)
+	content, _, err := c.invokeLLM(ctx, "llm.ParseControlIntent", apiKey, systemPrompt, text)
 	if err != nil {
 		return ControlIntent{}, err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, generationURL, bytes.NewReader(payload))
-	if err != nil {
-		return ControlIntent{}, err
-	}
-	req.Header.Set("Authorization", "Bearer "+apiKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return ControlIntent{}, fmt.Errorf("调用大模型接口失败: %w", err)
-	}
-	defer resp.Body.Close()
-
-	raw, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return ControlIntent{}, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return ControlIntent{}, fmt.Errorf("大模型接口返回 %d: %s", resp.StatusCode, string(raw))
-	}
-
-	var result chatResponse
-	if err := json.Unmarshal(raw, &result); err != nil {
-		return ControlIntent{}, fmt.Errorf("解析大模型响应失败: %w", err)
-	}
-	if result.Code != "" && result.Code != "Success" {
-		return ControlIntent{}, fmt.Errorf("大模型调用失败: %s", result.Message)
-	}
-
-	content := ""
-	if len(result.Output.Choices) > 0 {
-		content = extractMessageContent(result.Output.Choices[0].Message.Content)
-	} else {
-		content = strings.TrimSpace(result.Output.Text)
 	}
 	if strings.TrimSpace(content) == "" {
 		return ControlIntent{Action: "none"}, nil
 	}
 
-	content = strings.TrimSpace(content)
-	if strings.HasPrefix(content, "```") {
-		content = strings.TrimPrefix(content, "```json")
-		content = strings.TrimPrefix(content, "```")
-		content = strings.TrimSuffix(content, "```")
-		content = strings.TrimSpace(content)
-	}
+	content = stripMarkdownFence(content)
 
 	var intent ControlIntent
 	if err := json.Unmarshal([]byte(content), &intent); err != nil {
+		tracing.RecordError(ctx, err)
 		return ControlIntent{}, fmt.Errorf("解析控制意图 JSON 失败: %w", err)
 	}
 
 	intent.Action = strings.TrimSpace(strings.ToLower(intent.Action))
 	intent.Command = strings.TrimSpace(strings.ToLower(intent.Command))
 	if intent.Action != "control" {
-		return ControlIntent{Action: "none"}, nil
+		intent.Action = "none"
 	}
 
 	switch intent.Command {
 	case "view_all", "close_all", "view_todo", "view_done", "view_today", "open_settings", "close_settings", "open_important", "close_important", "theme_dark", "theme_light", "go_home":
+		if b, mErr := json.Marshal(intent); mErr == nil {
+			tracing.Event(ctx, "llm.control_intent_result", map[string]string{
+				"intent": string(b),
+			})
+		}
 		return intent, nil
 	default:
+		tracing.Event(ctx, "llm.control_intent_rejected", map[string]string{
+			"command": intent.Command,
+		})
 		return ControlIntent{Action: "none"}, nil
 	}
 }

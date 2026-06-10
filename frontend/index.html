@@ -324,6 +324,15 @@
     .tev-fav:hover{background:var(--hairline);color:#ffb340;transform:scale(1.06)}
     .tev-fav svg{width:14px;height:14px}
     .tev-fav.active{color:#ffb340}
+    .tev.conflict-highlight{
+      background:rgba(255,59,48,.09);
+      box-shadow:0 0 0 1.5px rgba(255,59,48,.38);
+      animation:conflict-flash 1.1s ease 2;
+    }
+    @keyframes conflict-flash{
+      0%,100%{box-shadow:0 0 0 1.5px rgba(255,59,48,.38)}
+      50%{box-shadow:0 0 0 3px rgba(255,59,48,.22)}
+    }
 
     /* AI insight */
     .insight-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
@@ -331,8 +340,17 @@
     .insight-head h4{font-size:14px;font-weight:600;letter-spacing:-.02em}
     .insight-head .chev{margin-left:auto;color:var(--muted-2)}
     .insight-status{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;margin-bottom:6px}
-    .insight-status .dot{width:7px;height:7px;border-radius:50%;background:#34c759}
+    .insight-status .dot{width:7px;height:7px;border-radius:50%;background:#34c759;transition:background .25s var(--ease)}
+    .insight-status.is-conflict .dot{background:#ff3b30}
     .insight-body{font-size:13px;line-height:1.5;color:var(--muted)}
+    .insight-jump{
+      margin-top:10px;display:inline-flex;align-items:center;gap:5px;
+      font-size:12px;font-weight:600;color:var(--accent);
+      padding:6px 12px;border-radius:999px;background:var(--accent-soft);
+      transition:background .25s var(--ease),transform .2s var(--ease);
+    }
+    .insight-jump:hover{background:var(--accent-soft-2);transform:translateY(-1px)}
+    .insight-jump svg{width:13px;height:13px}
     .insight-glow{
       position:absolute;right:-10px;bottom:-10px;width:90px;height:90px;border-radius:50%;
       background:radial-gradient(closest-side,rgba(0,102,204,.16),transparent 70%);filter:blur(6px);
@@ -1167,8 +1185,12 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 3.9L17.5 8l-3.9 1.6L12 13l-1.6-3.4L6.5 8zM5 15l.8 1.9L7.7 18l-1.9.8L5 21l-.8-2.2L2.3 18z"/></svg>
               <h4 data-i18n="insightTitle">AI Schedule Insight</h4>
             </div>
-            <div class="insight-status"><span class="dot"></span><span id="insight-status">No conflicts · Great day!</span></div>
+            <div class="insight-status" id="insight-status-wrap"><span class="dot"></span><span id="insight-status">No conflicts · Great day!</span></div>
             <p class="insight-body" id="insight-body">Your afternoon is wide open. Good time for deep work or planning.</p>
+            <button type="button" class="insight-jump" id="insight-jump" hidden>
+              <span id="insight-jump-text"></span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
           </div>
 
           <!-- upcoming -->
@@ -1550,6 +1572,7 @@
         insightOkBody:"你的下午很空闲，适合专注工作或做规划。",
         insightConflict:"有日程冲突",
         insightConflictBody:"检测到 {{n}} 处时间重叠，请调整时间避免冲突。",
+        insightJump:"查看冲突日程",
         insightBusy:"已安排 {{n}} 项 · {{dur}}",
         insightBusyBody:"你今天有 {{n}} 项日程。我会留意冲突并提前提醒你。",
         flexible:"待定",
@@ -1669,6 +1692,7 @@
         insightOkBody:"Your afternoon is wide open. Good time for deep work or planning.",
         insightConflict:"Schedule conflict detected",
         insightConflictBody:"Detected {{n}} overlapping time slot(s). Please adjust to avoid conflicts.",
+        insightJump:"View conflicts",
         insightBusy:"{{n}} planned · {{dur}}",
         insightBusyBody:"You have {{n}} item{{s}} scheduled. I’ll keep an eye on overlaps and remind you ahead of time.",
         flexible:"flexible",
@@ -1712,7 +1736,8 @@
       calTitle:$("cal-title"),calWeekrow:$("cal-weekrow"),calGrid:$("cal-grid"),
       miniTitle:$("mini-title"),miniWeek:$("mini-week"),miniGrid:$("mini-grid"),
       todayCardTitle:$("today-card-title"),todayBody:$("today-body"),
-      insightStatus:$("insight-status"),insightBody:$("insight-body"),
+      insightStatusWrap:$("insight-status-wrap"),insightStatus:$("insight-status"),insightBody:$("insight-body"),
+      insightJump:$("insight-jump"),insightJumpText:$("insight-jump-text"),
       upList:$("up-list"),viewAll:$("view-all"),
       cmd:$("cmd"),cmdInput:$("cmd-input"),micBtn:$("mic-btn"),addBtn:$("add-btn"),
       toast:$("toast"),mask:$("mask"),sheet:$("sheet"),sheetClose:$("sheet-close"),
@@ -1850,6 +1875,13 @@
       return Number.isFinite(ms)?ms:Number.POSITIVE_INFINITY;
     }
     function isCompleted(it){ return parseScheduleStartMs(it) < Date.now(); }
+    function scheduleEndMs(it){
+      const start=parseScheduleStartMs(it);
+      if(!Number.isFinite(start)) return Number.NEGATIVE_INFINITY;
+      const minutes=Math.max(Number(it.duration)||0, (it.endTime&&isValidHHMM(it.endTime)) ? (toMinutes(it.endTime)-toMinutes(it.startTime)) : 0, 30);
+      return start + (minutes>0?minutes:30)*60000;
+    }
+    function isScheduleEnded(it){ return scheduleEndMs(it) <= Date.now(); }
     function listByStatus(list){
       if(statusFilter==="done") return list.filter(isCompleted);
       if(statusFilter==="todo") return list.filter((x)=>!isCompleted(x));
@@ -2157,7 +2189,7 @@
           ${addBtn}`;
       }else{
         el.todayBody.innerHTML=`<div class="today-events">${list.map(it=>`
-          <div class="tev ${isCompleted(it)?"is-completed":""}">
+          <div class="tev ${isCompleted(it)?"is-completed":""}" data-schedule-id="${it.id||0}" data-conflict-key="${scheduleConflictKey(it)}">
             <span class="bar" style="background:${it.color}"></span>
             <div class="tev-main">
               <div class="tev-t">${it.title}</div>
@@ -2223,36 +2255,87 @@
       });
     }
 
+    function scheduleConflictKey(it){
+      const id=Number(it?.id)||0;
+      if(id>0) return `id:${id}`;
+      return `k:${it?.date||""}|${it?.startTime||""}|${it?.title||""}`;
+    }
+    function timedScheduleSpans(list){
+      return list
+        .filter((it)=>isValidHHMM(it.startTime||"") && !isScheduleEnded(it))
+        .map((it)=>{
+          const start=parseScheduleStartMs(it);
+          return {start,end:scheduleEndMs(it),key:scheduleConflictKey(it)};
+        })
+        .sort((a,b)=>a.start-b.start);
+    }
+    function detectConflicts(list){
+      const timed=timedScheduleSpans(list);
+      const keys=new Set();
+      let count=0;
+      let active=[];
+      for(const cur of timed){
+        active=active.filter((a)=>a.end>cur.start);
+        if(active.length){
+          count++;
+          keys.add(cur.key);
+          active.forEach((a)=>keys.add(a.key));
+        }
+        active.push(cur);
+      }
+      return {count,keys:[...keys]};
+    }
+    let lastConflictKeys=[];
+    function jumpToConflictSchedules(keys){
+      if(!keys?.length) return;
+      if(statusFilter!=="all"){
+        statusFilter="all";
+        el.statusSeg?.querySelectorAll(".status-btn").forEach((btn)=>{
+          btn.classList.toggle("active",(btn.dataset.statusFilter||"all")==="all");
+        });
+        renderTodayPanel();
+      }
+      requestAnimationFrame(()=>{
+        const keySet=new Set(keys);
+        const targets=[...el.todayBody.querySelectorAll(".tev[data-conflict-key]")]
+          .filter((node)=>keySet.has(node.dataset.conflictKey||""));
+        if(!targets.length) return;
+        targets.forEach((node)=>node.classList.add("conflict-highlight"));
+        targets[0].scrollIntoView({behavior:"smooth",block:"center"});
+        window.setTimeout(()=>targets.forEach((node)=>node.classList.remove("conflict-highlight")),3200);
+      });
+    }
     function renderInsight(){
       const list=eventsOn(selectedDate);
+      const hasConflictUi=()=>{
+        el.insightStatusWrap?.classList.remove("is-conflict");
+        if(el.insightJump){
+          el.insightJump.hidden=true;
+          lastConflictKeys=[];
+        }
+      };
       if(!list.length){
+        hasConflictUi();
         el.insightStatus.textContent=t("insightOk");
         el.insightBody.textContent=t("insightOkBody");
-      }else{
-        const timed=list
-          .filter((it)=>isValidHHMM(it.startTime||""))
-          .map((it)=>{
-            const start=parseScheduleStartMs(it);
-            const minutes=Math.max(Number(it.duration)||0, (it.endTime&&isValidHHMM(it.endTime)) ? (toMinutes(it.endTime)-toMinutes(it.startTime)) : 0, 30);
-            const end=start + (minutes>0?minutes:30)*60000;
-            return {start,end};
-          })
-          .sort((a,b)=>a.start-b.start);
-        let conflictCount=0;
-        let maxEnd=-Infinity;
-        for(const cur of timed){
-          if(cur.start < maxEnd) conflictCount++;
-          if(cur.end > maxEnd) maxEnd=cur.end;
-        }
-        if(conflictCount>0){
-          el.insightStatus.textContent=t("insightConflict");
-          el.insightBody.textContent=t("insightConflictBody",{n:String(conflictCount)});
-          return;
-        }
-        const total=list.reduce((a,b)=>a+(Number(b.duration)||0),0);
-        el.insightStatus.textContent=t("insightBusy",{n:String(list.length),dur:durationLabel(total)||t("flexible")});
-        el.insightBody.textContent=t("insightBusyBody",{n:String(list.length),s:list.length===1?"":"s"});
+        return;
       }
+      const {count:conflictCount,keys:conflictKeys}=detectConflicts(list);
+      if(conflictCount>0){
+        el.insightStatusWrap?.classList.add("is-conflict");
+        el.insightStatus.textContent=t("insightConflict");
+        el.insightBody.textContent=t("insightConflictBody",{n:String(conflictCount)});
+        lastConflictKeys=conflictKeys;
+        if(el.insightJump){
+          el.insightJump.hidden=false;
+          if(el.insightJumpText) el.insightJumpText.textContent=t("insightJump");
+        }
+        return;
+      }
+      hasConflictUi();
+      const total=list.reduce((a,b)=>a+(Number(b.duration)||0),0);
+      el.insightStatus.textContent=t("insightBusy",{n:String(list.length),dur:durationLabel(total)||t("flexible")});
+      el.insightBody.textContent=t("insightBusyBody",{n:String(list.length),s:list.length===1?"":"s"});
     }
 
     function renderUpcoming(){
@@ -3092,6 +3175,7 @@
         monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
         refreshMarkedDatesForMonth(monthCursor).then(()=>renderAll());
       });
+      el.insightJump?.addEventListener("click",()=>jumpToConflictSchedules(lastConflictKeys));
       $("mini-prev").addEventListener("click",async ()=>{monthCursor.setMonth(monthCursor.getMonth()-1);await refreshMarkedDatesForMonth(monthCursor);renderMain();renderMini();});
       $("mini-next").addEventListener("click",async ()=>{monthCursor.setMonth(monthCursor.getMonth()+1);await refreshMarkedDatesForMonth(monthCursor);renderMain();renderMini();});
 

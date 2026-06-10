@@ -1,13 +1,13 @@
 package llm
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"strings"
 	"time"
+
+	"xengineer-voice-calendar/internal/tracing"
 )
 
 // UpdateIntent 是语音修改意图识别结果。
@@ -22,74 +22,26 @@ type UpdateIntent struct {
 	EndTime   string `json:"endTime"`   // 修改后的结束时间，可空
 }
 
-func (c *Client) ParseUpdateIntent(apiKey, text string, ref time.Time) (UpdateIntent, error) {
+func (c *Client) ParseUpdateIntent(ctx context.Context, apiKey, text string, ref time.Time) (UpdateIntent, error) {
 	text = strings.TrimSpace(text)
 	if text == "" {
 		return UpdateIntent{Action: "none"}, nil
 	}
 
 	systemPrompt := buildUpdateIntentPrompt(ref)
-	reqBody := chatRequest{Model: defaultModel}
-	reqBody.Input.Messages = []chatMessage{
-		{Role: "system", Content: systemPrompt},
-		{Role: "user", Content: text},
-	}
-	reqBody.Parameters.ResultFormat = "message"
-
-	payload, err := json.Marshal(reqBody)
+	content, _, err := c.invokeLLM(ctx, "llm.ParseUpdateIntent", apiKey, systemPrompt, text)
 	if err != nil {
 		return UpdateIntent{}, err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, generationURL, bytes.NewReader(payload))
-	if err != nil {
-		return UpdateIntent{}, err
-	}
-	req.Header.Set("Authorization", "Bearer "+apiKey)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return UpdateIntent{}, fmt.Errorf("调用大模型接口失败: %w", err)
-	}
-	defer resp.Body.Close()
-
-	raw, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return UpdateIntent{}, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return UpdateIntent{}, fmt.Errorf("大模型接口返回 %d: %s", resp.StatusCode, string(raw))
-	}
-
-	var result chatResponse
-	if err := json.Unmarshal(raw, &result); err != nil {
-		return UpdateIntent{}, fmt.Errorf("解析大模型响应失败: %w", err)
-	}
-	if result.Code != "" && result.Code != "Success" {
-		return UpdateIntent{}, fmt.Errorf("大模型调用失败: %s", result.Message)
-	}
-
-	content := ""
-	if len(result.Output.Choices) > 0 {
-		content = extractMessageContent(result.Output.Choices[0].Message.Content)
-	} else {
-		content = strings.TrimSpace(result.Output.Text)
 	}
 	if strings.TrimSpace(content) == "" {
 		return UpdateIntent{Action: "none"}, nil
 	}
 
-	content = strings.TrimSpace(content)
-	if strings.HasPrefix(content, "```") {
-		content = strings.TrimPrefix(content, "```json")
-		content = strings.TrimPrefix(content, "```")
-		content = strings.TrimSuffix(content, "```")
-		content = strings.TrimSpace(content)
-	}
+	content = stripMarkdownFence(content)
 
 	var intent UpdateIntent
 	if err := json.Unmarshal([]byte(content), &intent); err != nil {
+		tracing.RecordError(ctx, err)
 		return UpdateIntent{}, fmt.Errorf("解析修改意图 JSON 失败: %w", err)
 	}
 
@@ -102,6 +54,13 @@ func (c *Client) ParseUpdateIntent(apiKey, text string, ref time.Time) (UpdateIn
 	if intent.Action != "update" {
 		intent.Action = "none"
 	}
+
+	if b, mErr := json.Marshal(intent); mErr == nil {
+		tracing.Event(ctx, "llm.update_intent_result", map[string]string{
+			"intent": string(b),
+		})
+	}
+
 	return intent, nil
 }
 

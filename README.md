@@ -137,7 +137,6 @@ wails build -platform windows/amd64
 ```
 
 ## 配置与数据文件
-- 可使用key：sk-6efa633396704acfa192ffbef48e21fd
 - `config.json`：程序目录下，字段 `api_key`
 - `voice_calendar.db`：程序目录下 SQLite 数据库
 

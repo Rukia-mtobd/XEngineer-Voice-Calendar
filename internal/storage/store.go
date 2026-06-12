@@ -125,6 +125,21 @@ func (s *Store) DeleteScheduleByDateAndTitle(date, title string) (int64, error) 
 	return res.RowsAffected, res.Error
 }
 
+func (s *Store) DeleteScheduleByDateAndStartTime(date, startTime string) (int64, error) {
+	res := s.db.Where("date = ? AND start_time = ?", strings.TrimSpace(date), strings.TrimSpace(startTime)).Delete(&ScheduleRecord{})
+	return res.RowsAffected, res.Error
+}
+
+func (s *Store) DeleteScheduleByDateTitleAndStartTime(date, title, startTime string) (int64, error) {
+	res := s.db.Where(
+		"date = ? AND title = ? AND start_time = ?",
+		strings.TrimSpace(date),
+		strings.TrimSpace(title),
+		strings.TrimSpace(startTime),
+	).Delete(&ScheduleRecord{})
+	return res.RowsAffected, res.Error
+}
+
 func (s *Store) DeleteSchedulesByDate(date string) (int64, error) {
 	res := s.db.Where("date = ?", strings.TrimSpace(date)).Delete(&ScheduleRecord{})
 	return res.RowsAffected, res.Error

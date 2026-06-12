@@ -6,7 +6,11 @@ import {main} from '../models';
 
 export function CreateSchedule(arg1:llm.ParsedSchedule):Promise<storage.ScheduleRecord>;
 
+export function DeleteScheduleByDateAndStartTime(arg1:string,arg2:string):Promise<number>;
+
 export function DeleteScheduleByDateAndTitle(arg1:string,arg2:string):Promise<number>;
+
+export function DeleteScheduleByDateTitleAndStartTime(arg1:string,arg2:string,arg3:string):Promise<number>;
 
 export function DeleteScheduleByID(arg1:number):Promise<void>;
 

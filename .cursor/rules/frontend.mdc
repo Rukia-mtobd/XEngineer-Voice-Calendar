@@ -1,0 +1,52 @@
+---
+description: 前端单页应用（index.html）开发与 UI 规范
+globs: "frontend/**"
+alwaysApply: false
+---
+
+# 前端规范
+
+## 技术栈
+
+- **单文件** `frontend/index.html`：`<style>` 内联 CSS + `<script type="module">` 内联 JS
+- 不使用 React/Vue/Svelte，不引入 webpack/vite 构建链
+- Wails 绑定：`import { Method } from './wailsjs/go/main/App.js'`
+
+## 调用后端
+
+优先使用统一的 `invokeBackend` 包装（与现有 `*DB` 辅助函数一致）：
+
+```javascript
+const invokeBackend = (method, ...args) => window?.go?.main?.App?.[method]?.(...args);
+const createScheduleDB = (item) => invokeBackend("CreateSchedule", item);
+```
+
+新增后端方法时：在 `app.go` 实现 → 重新生成 wailsjs → 在此添加 `xxxDB` 包装函数。
+
+## 国际化
+
+- 文案字典 `DICT["zh-CN"]` / `DICT["en-US"]`
+- 通过 `t("path.to.key", { n: 3 })` 取值，支持 `{{n}}` 占位符
+- HTML 元素用 `data-i18n` / `data-i18n-ph` 属性，由 `applyI18n()` 刷新
+- **新增 UI 文案必须同时补充中英文**
+
+## 视觉风格（Apple-inspired）
+
+- CSS 变量定义在 `:root`，深色模式用 `[data-theme="dark"]` 覆盖
+- 主色 `--accent: #0066cc`（深色 `#2997ff`）
+- 字体：`-apple-system, BlinkMacSystemFont, "SF Pro Display", ...`
+- 毛玻璃侧栏/顶栏：`backdrop-filter: saturate(180%) blur(20px)`
+- 过渡：`cubic-bezier(.4,0,.2,1)`，避免花哨渐变与过重阴影
+- 详细设计 token 参考 `.cursor/skills/apple.md`
+
+## 日程数据流
+
+- 内存缓存 `schedules` / `allSchedulesCache`，变更后调用 `render*` 系列函数刷新 UI
+- 日期/时间选择与后端字段对齐：`date`（YYYY-MM-DD）、`startTime`/`endTime`（HH:mm）
+- Toast 反馈用 `showToast(t("toast.xxx"))`
+
+## 禁止事项
+
+- 不拆分出独立 `.css` / `.js` 文件（除非用户明确要求模块化）
+- 不手改 `frontend/wailsjs/` 下任何文件
+- 不在前端硬编码 API Key 或密钥

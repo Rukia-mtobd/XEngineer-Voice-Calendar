@@ -1,0 +1,26 @@
+---
+description: Wails 自动生成代码，禁止手改
+globs: "frontend/wailsjs/**"
+alwaysApply: false
+---
+
+# Wails 生成代码
+
+`frontend/wailsjs/` 目录由 Wails CLI 自动生成，包含：
+
+- `go/main/App.js` / `App.d.ts` — Go `App` 方法绑定
+- `go/models.ts` — Go 结构体 TypeScript 类型
+- `runtime/` — Wails 运行时
+
+## 规则
+
+1. **禁止手改**此目录下任何文件。
+2. 修改 `app.go` 中 `App` 的方法签名或导出类型后，执行：
+
+```bash
+wails generate module
+# 或开发模式下自动同步：
+wails dev
+```
+
+3. 若前端报「方法不存在」，先检查 Go 侧是否已导出，再重新生成而非在 JS 中打补丁。

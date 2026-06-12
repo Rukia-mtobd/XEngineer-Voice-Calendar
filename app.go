@@ -306,6 +306,36 @@ func (a *App) DeleteScheduleByDateAndTitle(date, title string) (int64, error) {
 	return a.store.DeleteScheduleByDateAndTitle(date, title)
 }
 
+// DeleteScheduleByDateAndStartTime 按日期+开始时间删除日程。
+func (a *App) DeleteScheduleByDateAndStartTime(date, startTime string) (int64, error) {
+	date = strings.TrimSpace(date)
+	startTime = strings.TrimSpace(startTime)
+	if date == "" {
+		return 0, errors.New("date 不能为空")
+	}
+	if startTime == "" {
+		return 0, errors.New("startTime 不能为空")
+	}
+	return a.store.DeleteScheduleByDateAndStartTime(date, startTime)
+}
+
+// DeleteScheduleByDateTitleAndStartTime 按日期+标题+开始时间删除日程。
+func (a *App) DeleteScheduleByDateTitleAndStartTime(date, title, startTime string) (int64, error) {
+	date = strings.TrimSpace(date)
+	title = strings.TrimSpace(title)
+	startTime = strings.TrimSpace(startTime)
+	if date == "" {
+		return 0, errors.New("date 不能为空")
+	}
+	if title == "" {
+		return 0, errors.New("title 不能为空")
+	}
+	if startTime == "" {
+		return 0, errors.New("startTime 不能为空")
+	}
+	return a.store.DeleteScheduleByDateTitleAndStartTime(date, title, startTime)
+}
+
 // DeleteSchedulesByDate 按日期删除全部日程。
 func (a *App) DeleteSchedulesByDate(date string) (int64, error) {
 	date = strings.TrimSpace(date)

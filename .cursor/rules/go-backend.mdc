@@ -1,0 +1,63 @@
+---
+description: Go 后端与 Wails 绑定层编码规范
+globs: "**/*.go"
+alwaysApply: false
+---
+
+# Go 后端规范
+
+## 包职责
+
+```
+main.go          → Wails 启动、embed 前端资源
+app.go           → App 结构体，暴露给前端的公开方法
+internal/asr     → DashScope 语音识别 HTTP 调用
+internal/llm     → 日程解析与各意图识别（每类意图独立文件）
+internal/storage → GORM + SQLite CRUD
+internal/config  → config.json 读写（路径基于 os.Executable()）
+internal/tracing → OpenTelemetry span，输出 voice_calendar_trace.jsonl
+```
+
+## App 方法模板
+
+新增 Wails 方法时遵循现有模式：
+
+```go
+func (a *App) SomeMethod(input string) (SomeType, error) {
+    ctx, span := tracing.StartSpan(a.traceCtx(), "app.SomeMethod")
+    defer span.End()
+
+    // 1. 校验入参（strings.TrimSpace）
+    // 2. 读取 apiKey（LLM/ASR 类方法）
+    // 3. 调用 internal 包
+    // 4. 失败时 tracing.RecordError(ctx, err)
+    // 5. 成功时 tracing.Event 记录摘要
+    return result, err
+}
+```
+
+## 错误处理
+
+- 用户可见错误：`errors.New("中文描述")` 或 `fmt.Errorf("...: %w", err)`
+- 包装底层错误保留链：`fmt.Errorf("open sqlite: %w", err)`
+- 仅 `NewApp()` 中存储初始化失败可 `panic`；运行时错误返回 `error`
+
+## LLM 包约定
+
+- 统一通过 `invokeLLM(ctx, operation, apiKey, systemPrompt, userText)` 调用 DashScope
+- 解析 JSON 前用 `stripMarkdownFence` 去除 markdown 代码块
+- 意图结构体须有 `json` 标签，字段与前端一致（camelCase）
+- 删除/修改意图须有 guard 逻辑，避免将「新增日程」误判为删除
+
+## Storage 约定
+
+- 模型 `ScheduleRecord`，表名 `schedules`
+- 查询默认排序：`date asc` → `start_time asc` → `created_at desc`
+- 更新时根据 start/end 自动计算 `duration`（分钟）
+- GORM 字段用 snake_case，JSON 标签用 camelCase
+
+## 禁止事项
+
+- 不在 `app.go` 直接写 HTTP 请求或 SQL
+- 不修改 `frontend/wailsjs/` 生成文件
+- 不在代码中硬编码 API Key

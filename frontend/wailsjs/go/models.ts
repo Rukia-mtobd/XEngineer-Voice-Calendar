@@ -19,6 +19,7 @@ export namespace llm {
 	    id: number;
 	    date: string;
 	    title: string;
+	    startTime: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new DeleteIntent(source);
@@ -30,6 +31,7 @@ export namespace llm {
 	        this.id = source["id"];
 	        this.date = source["date"];
 	        this.title = source["title"];
+	        this.startTime = source["startTime"];
 	    }
 	}
 	export class ParsedSchedule {

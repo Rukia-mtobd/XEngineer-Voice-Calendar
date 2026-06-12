@@ -1,0 +1,87 @@
+---
+description: XEngineer Voice Calendar 项目核心约束与编码规范
+alwaysApply: true
+---
+
+# XEngineer Voice Calendar — 项目约束
+
+## 项目定位
+
+- Go + Wails v2 桌面应用，语音输入 → DashScope ASR → LLM 意图/日程解析 → SQLite 持久化
+- 前端为**单文件** `frontend/index.html`（原生 HTML/CSS/JS，**禁止**引入 React/Vue 等框架）
+- Go 模块名：`xengineer-voice-calendar`
+
+## 分层与职责
+
+| 层级 | 路径 | 职责 |
+|------|------|------|
+| 入口 | `main.go` | Wails 启动、embed 前端资源 |
+| 绑定层 | `app.go` | 导出给前端的公开方法；参数校验；调用 internal；tracing |
+| 业务实现 | `internal/*` | ASR、LLM、存储、配置、追踪，**不**直接依赖 Wails runtime（除 `app.go` 中对话框等） |
+
+新增功能时：业务逻辑放 `internal/`，Wails 暴露方法放 `app.go`，前端交互放 `index.html`。
+
+## Go 编码规范
+
+- 导出结构体 JSON 字段用 **camelCase**（`startTime`、`isImportant`），与前端/Wails 绑定一致
+- 用户可见错误信息用**中文**（如 `"date 不能为空"`、`"请先配置并保存阿里云 API Key"`）
+- 字符串入参先 `strings.TrimSpace`；日期 `YYYY-MM-DD`，时间 `HH:mm`
+- 错误包装用 `fmt.Errorf("...: %w", err)`；初始化致命失败可 `panic`（参考 `NewApp`）
+- 存储层用 GORM + `github.com/glebarez/sqlite`；模型变更用 `AutoMigrate`，不手写迁移脚本
+- 涉及 LLM/关键业务路径时加 tracing：`tracing.StartSpan`、`tracing.SetAttrs`、`tracing.Event`、`tracing.RecordError`
+
+```go
+// ✅ app.go 中 LLM 类方法的典型模式
+ctx, span := tracing.StartSpan(a.traceCtx(), "app.SomeMethod")
+defer span.End()
+// ... 校验 apiKey → 调用 internal → 记录结果/错误
+```
+
+## Wails 前后端绑定
+
+- `app.go` 中需暴露给前端的方法必须是 **`App` 的导出方法**（首字母大写）
+- **禁止手动修改** `frontend/wailsjs/`（Wails 自动生成）；改绑定后运行 `wails dev` 或 `wails generate module`
+- 前端两种调用方式（保持现有风格）：
+  - 高频/类型安全：`import { ParseSchedule } from './wailsjs/go/main/App.js'`
+  - 其余：`invokeBackend("MethodName", ...args)` → `window.go.main.App[method](...)`
+- 新增绑定方法时，同步在前端添加对应的 `invokeBackend` 包装或 import
+
+## 前端约束
+
+- 所有 UI/逻辑集中在 `frontend/index.html`；样式用 CSS 变量（`:root` / `[data-theme="dark"]`）
+- 设计语言参考 Apple 风格：主色 `#0066cc`（暗色 `#2997ff`）、SF Pro 字体栈、毛玻璃侧栏、圆角卡片
+- 文案国际化通过 `DICT` 对象 + `data-i18n` 属性；新增用户可见文案需同时提供 `zh-CN` 与英文
+- 不拆分构建链：无 npm 打包步骤（`wails.json` 中 frontend build 为空）
+
+## LLM / Prompt 约束
+
+- 统一经 `internal/llm/invoke.go` 的 `invokeLLM` 调用 DashScope；模型常量 `defaultModel`
+- Prompt 要求模型**只输出 JSON**（无 markdown 解释）；响应用 `extractJSONArray` / `stripMarkdownFence` 提取
+- 日程解析必须传入 `time.Now()` 作为参考日；日期归一化用 `coerceScheduleDate`（禁止默认 2024 等历史年份）
+- 删除/修改/控制意图各有独立文件（`delete_intent.go` 等）；修改 prompt 时保持 action 枚举与后处理逻辑一致
+- 意图识别需保留防误判守卫（如删除意图的 create keyword guard）
+
+## 数据与配置
+
+- API Key 存程序目录 `config.json`（字段 `api_key`），通过 `internal/config` 读写；**禁止**硬编码或提交密钥
+- SQLite 默认 `voice_calendar.db`（工作目录绝对路径）
+- 追踪日志 `voice_calendar_trace.jsonl` 写于可执行文件目录
+
+## 变更原则（AI 必读）
+
+1. **最小改动**：只改与任务直接相关的文件，不做无关重构
+2. **遵循现有模式**：复制同层已有函数的命名、校验、tracing、错误处理方式
+3. **不过度抽象**：不为单行逻辑新增 helper；不引入新依赖除非必要
+4. **注释克制**：仅解释非显而易见的业务规则（如 LLM 日期修正、删除意图降级）
+5. **不主动**：不创建 commit、不修改 README、不添加测试，除非用户明确要求
+6. **不提交敏感/本地文件**：`config.json`、`voice_calendar.db`、`voice_calendar_trace.jsonl`、`.env`
+
+## 开发与验证
+
+```bash
+go mod tidy
+wails dev          # 开发热重载
+wails build -platform windows/amd64   # Windows 打包
+```
+
+新增 `app.go` 导出方法后，确认 `frontend/wailsjs/go/main/App.js` 已重新生成再改前端调用。

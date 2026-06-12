@@ -1,0 +1,48 @@
+---
+description: XEngineer Voice Calendar 项目总览与通用开发约束
+alwaysApply: true
+---
+
+# 项目总览
+
+基于 **Go + Wails v2** 的桌面语音日历。语音转文字（DashScope ASR）→ 大模型语义解析（日程/删除/修改/控制意图）→ SQLite 持久化 → 原生 HTML 前端展示。
+
+- 模块名：`xengineer-voice-calendar`
+- 入口：`main.go`（Wails 启动）+ `app.go`（前后端绑定方法）
+- 业务包：`internal/asr`、`internal/llm`、`internal/storage`、`internal/config`、`internal/tracing`
+- 前端：单文件 `frontend/index.html`（无 React/Vue/构建工具）
+
+## 修改原则
+
+1. **最小改动**：只改与需求直接相关的文件，不顺手重构无关代码。
+2. **分层清晰**：外部 API 调用放 `internal/asr` / `internal/llm`；数据库放 `internal/storage`；`app.go` 只做参数校验、编排与 tracing。
+3. **不引入新框架**：除非用户明确要求，不添加 npm 依赖、前端打包链或 ORM 以外的数据库方案。
+4. **不提交敏感/本地数据**：`config.json`、`voice_calendar.db`、`voice_calendar_trace.jsonl`、API Key 不得写入代码或提交。
+
+## 数据格式约定
+
+| 字段 | 格式 |
+|------|------|
+| 日期 `date` | `YYYY-MM-DD` |
+| 时间 `startTime` / `endTime` | `HH:mm`（24 小时） |
+| 月份查询 | `YYYY-MM` |
+| JSON 字段名 | camelCase（`startTime`、`isImportant`） |
+
+## Wails 桥接
+
+- `frontend/wailsjs/` 为**生成代码**，禁止手改。
+- 在 `app.go` 新增/修改 `App` 方法后，运行 `wails generate module` 或 `wails dev` 重新生成绑定。
+- 前端通过 `window.go.main.App.<Method>()` 或 `import ... from './wailsjs/go/main/App.js'` 调用。
+
+## 开发与构建
+
+```bash
+wails dev          # 开发（热重载）
+wails build -platform windows/amd64   # Windows 打包
+go mod tidy        # 整理依赖
+```
+
+## 用户可见文案
+
+- 面向用户的错误与提示使用**中文**（与现有 `errors.New("...")` 风格一致）。
+- 前端文案走 `DICT` 国际化（`zh-CN` / `en-US`），新增 UI 文案须同时补充两种语言。

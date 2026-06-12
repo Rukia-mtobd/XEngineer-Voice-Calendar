@@ -6,8 +6,16 @@ export function CreateSchedule(arg1) {
   return window['go']['main']['App']['CreateSchedule'](arg1);
 }
 
+export function DeleteScheduleByDateAndStartTime(arg1, arg2) {
+  return window['go']['main']['App']['DeleteScheduleByDateAndStartTime'](arg1, arg2);
+}
+
 export function DeleteScheduleByDateAndTitle(arg1, arg2) {
   return window['go']['main']['App']['DeleteScheduleByDateAndTitle'](arg1, arg2);
+}
+
+export function DeleteScheduleByDateTitleAndStartTime(arg1, arg2, arg3) {
+  return window['go']['main']['App']['DeleteScheduleByDateTitleAndStartTime'](arg1, arg2, arg3);
 }
 
 export function DeleteScheduleByID(arg1) {

@@ -371,6 +371,9 @@ func normalizeTime(s string) string {
 		return ""
 	}
 	if matched, _ := regexp.MatchString(`^\d{2}:\d{2}$`, s); matched {
+		if _, err := time.Parse("15:04", s); err != nil {
+			return ""
+		}
 		return s
 	}
 	return ""

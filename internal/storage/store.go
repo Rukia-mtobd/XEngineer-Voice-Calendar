@@ -33,6 +33,18 @@ type Store struct {
 	db *gorm.DB
 }
 
+// Close releases the underlying SQLite connection pool.
+func (s *Store) Close() error {
+	if s == nil || s.db == nil {
+		return nil
+	}
+	db, err := s.db.DB()
+	if err != nil {
+		return err
+	}
+	return db.Close()
+}
+
 // NewStore 初始化 SQLite 与表结构。
 // dbPath 为空时，默认使用项目目录下 voice_calendar.db。
 func NewStore(dbPath string) (*Store, error) {

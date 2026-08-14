@@ -78,6 +78,10 @@ export function SaveApiKey(arg1) {
   return window['go']['main']['App']['SaveApiKey'](arg1);
 }
 
+export function SendTestNotification() {
+  return window['go']['main']['App']['SendTestNotification']();
+}
+
 export function SetScheduleImportant(arg1, arg2) {
   return window['go']['main']['App']['SetScheduleImportant'](arg1, arg2);
 }

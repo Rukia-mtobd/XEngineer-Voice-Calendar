@@ -15,6 +15,8 @@ import (
 	"xengineer-voice-calendar/internal/asr"
 	"xengineer-voice-calendar/internal/config"
 	"xengineer-voice-calendar/internal/llm"
+	"xengineer-voice-calendar/internal/notification"
+	"xengineer-voice-calendar/internal/reminder"
 	"xengineer-voice-calendar/internal/storage"
 	"xengineer-voice-calendar/internal/tracing"
 
@@ -23,10 +25,13 @@ import (
 
 // App 前后端交互载体，后续功能方法在此扩展。
 type App struct {
-	ctx   context.Context
-	asr   *asr.Client
-	llm   *llm.Client
-	store *storage.Store
+	ctx             context.Context
+	asr             *asr.Client
+	llm             *llm.Client
+	store           *storage.Store
+	notifier        notification.Notifier
+	notifierInitErr error
+	reminderCancel  context.CancelFunc
 }
 
 // ExportScheduleItem 是导出 CSV 时前端传入的行数据。
@@ -46,10 +51,13 @@ func NewApp() *App {
 		panic(fmt.Errorf("init sqlite store failed: %w", err))
 	}
 
+	notifier, notifierErr := notification.New()
 	return &App{
-		asr:   asr.NewClient(),
-		llm:   llm.NewClient(),
-		store: store,
+		asr:             asr.NewClient(),
+		llm:             llm.NewClient(),
+		store:           store,
+		notifier:        notifier,
+		notifierInitErr: notifierErr,
 	}
 }
 
@@ -59,6 +67,37 @@ func (a *App) startup(ctx context.Context) {
 	if err := tracing.Init(); err != nil {
 		fmt.Println("tracing init failed:", err)
 	}
+	if a.notifierInitErr != nil {
+		fmt.Println("system notifications unavailable:", a.notifierInitErr)
+		return
+	}
+	reminderCtx, cancel := context.WithCancel(ctx)
+	a.reminderCancel = cancel
+	service := reminder.New(a.store, a.notifier, reminder.DefaultLeadTime, reminder.DefaultPollInterval)
+	go service.Run(reminderCtx)
+}
+
+func (a *App) shutdown(ctx context.Context) {
+	if a.reminderCancel != nil {
+		a.reminderCancel()
+	}
+	if err := tracing.Shutdown(ctx); err != nil {
+		fmt.Println("tracing shutdown failed:", err)
+	}
+	if err := a.store.Close(); err != nil {
+		fmt.Println("sqlite shutdown failed:", err)
+	}
+}
+
+// SendTestNotification verifies that native system notifications are available.
+func (a *App) SendTestNotification() error {
+	if a.notifierInitErr != nil {
+		return fmt.Errorf("系统通知不可用: %w", a.notifierInitErr)
+	}
+	if a.notifier == nil {
+		return errors.New("系统通知未初始化")
+	}
+	return a.notifier.Send("语音日历", "系统通知已成功启用")
 }
 
 func (a *App) traceCtx() context.Context {
@@ -397,7 +436,11 @@ func (a *App) SetScheduleImportant(id uint, important bool) (storage.ScheduleRec
 }
 
 func validHHMM(s string) bool {
-	return regexp.MustCompile(`^\d{2}:\d{2}$`).MatchString(s)
+	if !regexp.MustCompile(`^\d{2}:\d{2}$`).MatchString(s) {
+		return false
+	}
+	_, err := time.Parse("15:04", s)
+	return err == nil
 }
 
 // ExportSchedulesCSV 导出当前日程列表为 CSV 文件。

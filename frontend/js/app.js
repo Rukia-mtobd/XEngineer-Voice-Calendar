@@ -1,0 +1,2146 @@
+import { SaveApiKey, LoadApiKey, RecognizeSpeech, ParseSchedule } from '../wailsjs/go/main/App.js';
+
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MONTHS_SHORT=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const WEEK=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const WEEK1=["S","M","T","W","T","F","S"];
+const WEEK_ZH=["日","一","二","三","四","五","六"];
+const WEEKDAY_FULL_EN=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const WEEKDAY_ZH=["周日","周一","周二","周三","周四","周五","周六"];
+const LUNAR=["初一","初二","初三","初四","初五","初六","初七","初八","初九","初十","十一","十二","十三","十四","十五","十六","十七","十八","十九","二十","廿一","廿二","廿三","廿四","廿五","廿六","廿七","廿八","廿九","三十"];
+const DOTS=["#0066cc","#5856d6","#34c759","#ff9f0a"];
+
+const DICT={
+  "zh-CN":{
+    tagline:"你的日程，井然有序。",
+    insightTitle:"AI 日程洞察",
+    upcoming:"即将到来",
+    viewAll:"查看全部",
+    settings:"设置",
+    language:"语言",
+    theme:"主题",
+    light:"浅色",
+    dark:"深色",
+    model:"AI 模型",
+    mic:"麦克风",
+    micValue:"默认设备",
+    notifications:"系统通知",
+    notificationTest:"发送测试通知",
+    apiKey:"API Key",
+    apiHint:"用于语音识别与 AI 解析。",
+    apiPlaceholder:"请输入你的 API Key",
+    titlePlaceholder:"输入日程标题",
+    notePlaceholder:"添加更多说明、会议内容或提醒事项...",
+    timeArrange:"时间安排",
+    save:"保存",
+    cmdPlaceholder:"让 AI 帮你安排会议、检查冲突或规划一天…",
+    greetMorning:"早上好，Olivia",
+    greetAfternoon:"下午好，Olivia",
+    greetEvening:"晚上好，Olivia",
+    countToday:"今日 {{n}} 项日程",
+    countDay:"当日 {{n}} 项日程",
+    heroNote:"祝你拥有高效愉快的一天！",
+    allDay:"全天",
+    todayPrefix:"今天",
+    noEvents:"今日暂无日程",
+    freeTime:"尽情享受空闲时光",
+    addEvent:"添加日程",
+    deleted:"已删除",
+    deleteFail:"删除失败",
+    edit:"编辑",
+    editTitle:"编辑日程",
+    editLabelTitle:"标题",
+    editLabelStart:"开始时间（HH:mm）",
+    editLabelEnd:"结束时间（HH:mm，可空）",
+    editSave:"保存",
+    editCancel:"取消",
+    editInvalidTime:"时间格式需为 HH:mm",
+    editTitleRequired:"标题不能为空",
+    updated:"已更新",
+    addTitle:"添加日程",
+    addLabelDate:"日期",
+    addLabelTitle:"标题",
+    addLabelStart:"开始时间（HH:mm）",
+    addLabelEnd:"结束时间（HH:mm，可选）",
+    addLabelDesc:"备注",
+    addSave:"保存",
+    addCancel:"取消",
+    addDateRequired:"日期不能为空",
+    addSuccess:"已新增：{{title}}",
+    addSub:"快速安排新的计划，让 AI 帮你管理时间",
+    editSub:"修改你的计划安排",
+    addNotesToggle:"＋ 添加备注",
+    tpTitleStart:"开始时间",
+    tpTitleEnd:"结束时间",
+    tpCancel:"取消",
+    tpDone:"完成",
+    controlViewAll:"已打开全部日程",
+    controlViewTodo:"已筛选待完成日程",
+    controlViewDone:"已筛选已完成日程",
+    controlViewToday:"已切换到今日日程",
+    controlOpenSettings:"已打开设置",
+    controlCloseSettings:"已关闭设置",
+    controlOpenImportant:"已打开重要日程",
+    controlCloseImportant:"已关闭重要日程",
+    controlThemeDark:"已切换深色模式",
+    controlThemeLight:"已切换浅色模式",
+    controlGoHome:"已返回主页",
+    controlCloseAll:"已关闭全部日程",
+    statusAll:"全部",
+    statusTodo:"待完成",
+    statusDone:"已完成",
+    allSchedulesTitle:"全部日程",
+    allSchedulesSub:"查看和管理全部已生成日程",
+    allSchedulesEmpty:"暂无日程",
+    allSearchPlaceholder:"按标题搜索...",
+    importantTitle:"重要日程",
+    importantSub:"您特别关注的重要安排",
+    importantTotal:"重要日程 {{n}}",
+    importantWeek:"本周即将开始 {{n}}",
+    importantMonth:"本月重点事项 {{n}}",
+    importantEmptyTitle:"暂无重要日程",
+    importantEmptySub:"点击日程右侧星标即可加入重要",
+    allExportBtn:"导出日程",
+    exportSuccess:"导出成功",
+    exportFail:"导出失败，请重试",
+    exportCanceled:"已取消导出",
+    allTotalStat:"共{{n}}个日程",
+    allTodoStat:"待完成 {{n}}",
+    allDoneStat:"已完成 {{n}}",
+    allGroupToday:"今天 · {{date}}",
+    allGroupTomorrow:"明天 · {{date}}",
+    allStatusOngoing:"进行中",
+    allStatusDone:"已完成",
+    allStatusTodo:"待完成",
+    dateDisplay:"{{m}}月{{d}}日 {{w}}",
+    dpToday:"今天",
+    dpClear:"清除",
+    confirmTitle:"确认删除",
+    confirmOk:"确认",
+    confirmCancel:"取消",
+    confirmDeleteOne:"确认删除该日程吗？",
+    confirmDeleteByDateTitle:"确认删除 {{date}} 的「{{title}}」吗？",
+    confirmDeleteByDateTime:"确认删除 {{date}} {{time}} 的日程吗？",
+    confirmDeleteByDateTitleTime:"确认删除 {{date}} {{time}} 的「{{title}}」吗？",
+    confirmDeleteByDateAll:"确认删除 {{date}} 的全部日程吗？",
+    insightOk:"无冲突 · 完美的一天！",
+    insightOkBody:"你的下午很空闲，适合专注工作或做规划。",
+    insightConflict:"有日程冲突",
+    insightConflictBody:"检测到 {{n}} 处时间重叠，请调整时间避免冲突。",
+    insightJump:"查看冲突日程",
+    insightBusy:"已安排 {{n}} 项 · {{dur}}",
+    insightBusyBody:"你今天有 {{n}} 项日程。我会留意冲突并提前提醒你。",
+    flexible:"待定",
+    nothing:"暂时没有即将到来的安排。",
+    view:{day:"日",week:"周",month:"月"},
+    toast:{thinking:"思考中…",transcribing:"识别中…",listening:"聆听中…",empty:"音频为空",noCatch:"没听清，请再说一次",unsupported:"当前环境不支持录音",added:"已添加：{{title}}",updated:"已更新：{{title}}",deleted:"已删除{{n}}条日程",noDeleteMatch:"没有匹配到可删除的日程",deleteCanceled:"已取消删除",noNotif:"暂无新通知",allSoon:"全部事件视图开发中",saved:"设置已保存",keyRequired:"请输入 API Key",notificationSent:"测试通知已发送",notificationFailed:"系统通知发送失败"}
+  },
+  "en-US":{
+    tagline:"Your schedule, beautifully organized.",
+    insightTitle:"AI Schedule Insight",
+    upcoming:"Upcoming",
+    viewAll:"View all",
+    settings:"Settings",
+    language:"Language",
+    theme:"Theme",
+    light:"Light",
+    dark:"Dark",
+    model:"AI Model",
+    mic:"Microphone",
+    micValue:"Default device",
+    notifications:"System notifications",
+    notificationTest:"Send test",
+    apiKey:"API Key",
+    apiHint:"Used for speech recognition and AI parsing.",
+    apiPlaceholder:"Enter your API Key",
+    titlePlaceholder:"Enter schedule title",
+    notePlaceholder:"Add more details, meeting context, or reminders...",
+    timeArrange:"Time",
+    save:"Save",
+    cmdPlaceholder:"Ask AI to schedule a meeting, check conflicts, or plan your day…",
+    greetMorning:"Good morning, Olivia",
+    greetAfternoon:"Good afternoon, Olivia",
+    greetEvening:"Good evening, Olivia",
+    countToday:"{{n}} {{unit}} today",
+    countDay:"{{n}} {{unit}} this day",
+    heroNote:"Have a nice and productive day!",
+    allDay:"All day",
+    todayPrefix:"Today",
+    noEvents:"No events today",
+    freeTime:"Enjoy your free time",
+    addEvent:"Add Event",
+    deleted:"Deleted",
+    deleteFail:"Delete failed",
+    edit:"Edit",
+    editTitle:"Edit Schedule",
+    editLabelTitle:"Title",
+    editLabelStart:"Start Time (HH:mm)",
+    editLabelEnd:"End Time (HH:mm, optional)",
+    editSave:"Save",
+    editCancel:"Cancel",
+    editInvalidTime:"Time format must be HH:mm",
+    editTitleRequired:"Title is required",
+    updated:"Updated",
+    addTitle:"Add Schedule",
+    addLabelDate:"Date",
+    addLabelTitle:"Title",
+    addLabelStart:"Start Time (HH:mm)",
+    addLabelEnd:"End Time (HH:mm, optional)",
+    addLabelDesc:"Note",
+    addSave:"Save",
+    addCancel:"Cancel",
+    addDateRequired:"Date is required",
+    addSuccess:"Added: {{title}}",
+    addSub:"Quickly plan a new schedule, let AI manage your time",
+    editSub:"Modify your current plan",
+    addNotesToggle:"+ Add notes",
+    tpTitleStart:"Start time",
+    tpTitleEnd:"End time",
+    tpCancel:"Cancel",
+    tpDone:"Done",
+    controlViewAll:"Opened all schedules",
+    controlViewTodo:"Showing todo schedules",
+    controlViewDone:"Showing completed schedules",
+    controlViewToday:"Switched to today's schedules",
+    controlOpenSettings:"Opened settings",
+    controlCloseSettings:"Closed settings",
+    controlOpenImportant:"Opened important schedules",
+    controlCloseImportant:"Closed important schedules",
+    controlThemeDark:"Switched to dark mode",
+    controlThemeLight:"Switched to light mode",
+    controlGoHome:"Returned to home",
+    controlCloseAll:"Closed all schedules",
+    statusAll:"All",
+    statusTodo:"Todo",
+    statusDone:"Done",
+    allSchedulesTitle:"All Schedules",
+    allSchedulesSub:"View and manage all generated schedules",
+    allSchedulesEmpty:"No schedules yet",
+    allSearchPlaceholder:"Search by title...",
+    importantTitle:"Important Schedules",
+    importantSub:"Your specially watched key schedules",
+    importantTotal:"Important {{n}}",
+    importantWeek:"This week {{n}}",
+    importantMonth:"This month {{n}}",
+    importantEmptyTitle:"No important schedules",
+    importantEmptySub:"Click the star on a schedule to mark important",
+    allExportBtn:"Export",
+    exportSuccess:"Export succeeded",
+    exportFail:"Export failed, please retry",
+    exportCanceled:"Export cancelled",
+    allTotalStat:"Total {{n}} schedules",
+    allTodoStat:"Todo {{n}}",
+    allDoneStat:"Done {{n}}",
+    allGroupToday:"Today · {{date}}",
+    allGroupTomorrow:"Tomorrow · {{date}}",
+    allStatusOngoing:"Ongoing",
+    allStatusDone:"Done",
+    allStatusTodo:"Todo",
+    dateDisplay:"{{m}}/{{d}} {{w}}",
+    dpToday:"Today",
+    dpClear:"Clear",
+    confirmTitle:"Confirm deletion",
+    confirmOk:"Delete",
+    confirmCancel:"Cancel",
+    confirmDeleteOne:"Are you sure you want to delete this schedule?",
+    confirmDeleteByDateTitle:"Delete \"{{title}}\" on {{date}}?",
+    confirmDeleteByDateTime:"Delete the schedule at {{time}} on {{date}}?",
+    confirmDeleteByDateTitleTime:"Delete \"{{title}}\" at {{time}} on {{date}}?",
+    confirmDeleteByDateAll:"Delete all schedules on {{date}}?",
+    insightOk:"No conflicts · Great day!",
+    insightOkBody:"Your afternoon is wide open. Good time for deep work or planning.",
+    insightConflict:"Schedule conflict detected",
+    insightConflictBody:"Detected {{n}} overlapping time slot(s). Please adjust to avoid conflicts.",
+    insightJump:"View conflicts",
+    insightBusy:"{{n}} planned · {{dur}}",
+    insightBusyBody:"You have {{n}} item{{s}} scheduled. I’ll keep an eye on overlaps and remind you ahead of time.",
+    flexible:"flexible",
+    nothing:"Nothing on the horizon yet.",
+    view:{day:"Day",week:"Week",month:"Month"},
+    toast:{thinking:"Thinking…",transcribing:"Transcribing…",listening:"Listening…",empty:"Empty audio",noCatch:"Didn’t catch that",unsupported:"Recording unsupported",added:"Added: {{title}}",updated:"Updated: {{title}}",deleted:"Deleted {{n}} schedule(s)",noDeleteMatch:"No matching schedules to delete",deleteCanceled:"Delete cancelled",noNotif:"No new notifications",allSoon:"All events view coming soon",saved:"Settings saved",keyRequired:"API Key is required",notificationSent:"Test notification sent",notificationFailed:"System notification failed"}
+  }
+};
+
+const storedLang=localStorage.getItem("voiceflow.locale");
+let lang=storedLang&&DICT[storedLang]?storedLang:((navigator.language||"").toLowerCase().startsWith("zh")?"zh-CN":"en-US");
+const t=(path,vars={})=>{
+  const raw=path.split(".").reduce((a,k)=>a&&a[k],DICT[lang]);
+  const fallback=path.split(".").reduce((a,k)=>a&&a[k],DICT["en-US"]);
+  return String(raw??fallback??path).replace(/\{\{\s*(\w+)\s*\}\}/g,(_,k)=>vars[k]??"");
+};
+const isZh=()=>lang==="zh-CN";
+const invokeBackend = (method, ...args) => window?.go?.main?.App?.[method]?.(...args);
+const createScheduleDB = (item) => invokeBackend("CreateSchedule", item);
+const listSchedulesDB = () => invokeBackend("ListSchedules");
+const listSchedulesByDateDB = (date) => invokeBackend("ListSchedulesByDate", date);
+const listScheduledDatesByMonthDB = (month) => invokeBackend("ListScheduledDatesByMonth", month);
+const deleteScheduleByIDDB = (id) => invokeBackend("DeleteScheduleByID", id);
+const deleteScheduleByDateTitleDB = (date,title) => invokeBackend("DeleteScheduleByDateAndTitle", date, title);
+const deleteScheduleByDateTimeDB = (date,startTime) => invokeBackend("DeleteScheduleByDateAndStartTime", date, startTime);
+const deleteScheduleByDateTitleTimeDB = (date,title,startTime) => invokeBackend("DeleteScheduleByDateTitleAndStartTime", date, title, startTime);
+const deleteSchedulesByDateDB = (date) => invokeBackend("DeleteSchedulesByDate", date);
+const parseDeleteIntentDB = (text) => invokeBackend("ParseDeleteIntent", text);
+const parseUpdateIntentDB = (text) => invokeBackend("ParseUpdateIntent", text);
+const parseControlIntentDB = (text) => invokeBackend("ParseControlIntent", text);
+const updateScheduleByIDDB = (id,title,startTime,endTime) => invokeBackend("UpdateScheduleByID", id, title, startTime, endTime);
+const updateScheduleByIDWithDescDB = (id,title,startTime,endTime,desc) => invokeBackend("UpdateScheduleByIDWithDesc", id, title, startTime, endTime, desc);
+const listImportantSchedulesDB = () => invokeBackend("ListImportantSchedules");
+const setScheduleImportantDB = (id, important) => invokeBackend("SetScheduleImportant", id, important);
+const exportSchedulesCSVDB = (items) => invokeBackend("ExportSchedulesCSV", items);
+const SEND_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4z"/></svg>';
+const STOP_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="6.5" width="11" height="11" rx="2.2"/></svg>';
+
+const $=(id)=>document.getElementById(id);
+const el={
+  heroDate:$("hero-date"),heroWeekday:$("hero-weekday"),greeting:$("greeting-text"),
+  countText:$("count-text"),heroNote:$("hero-note"),
+  calTitle:$("cal-title"),calWeekrow:$("cal-weekrow"),calGrid:$("cal-grid"),
+  miniTitle:$("mini-title"),miniWeek:$("mini-week"),miniGrid:$("mini-grid"),
+  todayCardTitle:$("today-card-title"),todayBody:$("today-body"),
+  insightStatusWrap:$("insight-status-wrap"),insightStatus:$("insight-status"),insightBody:$("insight-body"),
+  insightJump:$("insight-jump"),insightJumpText:$("insight-jump-text"),
+  upList:$("up-list"),viewAll:$("view-all"),
+  cmd:$("cmd"),cmdInput:$("cmd-input"),micBtn:$("mic-btn"),addBtn:$("add-btn"),
+  toast:$("toast"),mask:$("mask"),sheet:$("sheet"),sheetClose:$("sheet-close"),
+  apiKey:$("api-key"),btnSave:$("btn-save"),notificationTest:$("notification-test"),
+  confirmMask:$("confirm-mask"),confirmTitle:$("confirm-title"),confirmText:$("confirm-text"),confirmOk:$("confirm-ok"),confirmCancel:$("confirm-cancel"),
+  editMask:$("edit-mask"),editTitle:$("edit-title"),editClose:$("edit-close"),editTitleInput:$("edit-title-input"),editStartInput:$("edit-start-input"),editEndInput:$("edit-end-input"),editStartBtn:$("edit-start-btn"),editEndBtn:$("edit-end-btn"),editCancel:$("edit-cancel"),editSave:$("edit-save"),editDateInput:$("edit-date-input"),editDescInput:$("edit-desc-input"),editNotesCard:$("edit-notes-card"),editNoteToggle:$("edit-note-toggle"),editNoteCount:$("edit-note-count"),editSummaryTitle:$("edit-summary-title"),editSummaryDate:$("edit-summary-date"),editSummaryTime:$("edit-summary-time"),editSummaryNote:$("edit-summary-note"),
+  addMask:$("add-mask"),addTitle:$("add-title"),addClose:$("add-close"),addDateInput:$("add-date-input"),addTitleInput:$("add-title-input"),addStartInput:$("add-start-input"),addEndInput:$("add-end-input"),addDescInput:$("add-desc-input"),addCancel:$("add-cancel"),addSave:$("add-save"),addNoteCount:$("add-note-count"),
+  addDatePill:$("add-date-pill"),addDateText:$("add-date-text"),addStartBtn:$("add-start-btn"),addEndBtn:$("add-end-btn"),addNoteToggle:$("add-note-toggle"),addNotesCard:$("add-notes-card"),
+  editSubtitle:$("edit-subtitle"),editDatePill:$("edit-date-pill"),editDateText:$("edit-date-text"),
+  addSubtitle:$("add-subtitle"),
+  timePickerPop:$("time-picker-pop"),tpTitle:$("tp-title"),tpClose:$("tp-close"),tpHourCol:$("tp-hour-col"),tpMinuteCol:$("tp-minute-col"),tpCancel:$("tp-cancel"),tpDone:$("tp-done"),
+  dpPop:$("date-picker-pop"),dpTitle:$("dp-title"),dpWeek:$("dp-week"),dpGrid:$("dp-grid"),dpPrev:$("dp-prev"),dpNext:$("dp-next"),dpToday:$("dp-today"),dpClear:$("dp-clear"),
+  allMask:$("all-mask"),allTitle:$("all-title"),allSubtitle:$("all-subtitle"),allList:$("all-list"),allClose:$("all-close"),
+  allSearch:$("all-search"),allTabs:$("all-tabs"),allExportLabel:$("all-export-label"),allExportBtn:$("all-export-btn"),
+  allTabAll:$("all-tab-all"),allTabTodo:$("all-tab-todo"),allTabDone:$("all-tab-done"),allCountAll:$("all-count-all"),allCountTodo:$("all-count-todo"),allCountDone:$("all-count-done"),
+  allStatTotal:$("all-stat-total"),allStatTodo:$("all-stat-todo"),allStatDone:$("all-stat-done"),
+  favMask:$("fav-mask"),favClose:$("fav-close"),favTitle:$("fav-title"),favSub:$("fav-sub"),favList:$("fav-list"),favPillTotal:$("fav-pill-total"),favPillWeek:$("fav-pill-week"),favPillMonth:$("fav-pill-month"),
+  statusSeg:$("status-seg"),
+  navSettings:$("nav-settings"),
+  themeToggle:$("theme-toggle"),themeIcon:$("theme-icon"),themeSeg:$("theme-seg"),langSeg:$("lang-seg"),
+  wave:$("wave"),avatar:$("avatar")
+};
+
+let today=new Date();today.setHours(0,0,0,0);
+let monthCursor=new Date(today.getFullYear(),today.getMonth(),1);
+let selectedDate=new Date(today);
+const schedules=[];
+const allSchedulesCache=[];
+let activeFilterDate="";
+let recorder=null,stream=null,chunks=[],isRecording=false,pendingStop=false,toastTimer=null;
+let confirmResolver=null;
+let editingScheduleId=0;
+let statusFilter="all";
+let allDialogOpen=false;
+let allDialogFilter="all";
+let allDialogQuery="";
+let allDialogSchedules=[];
+let favDialogOpen=false;
+let favoriteSchedules=[];
+let voiceTaskId=0;
+let textTaskId=0;
+let isVoiceProcessing=false;
+let speechRec=null;
+let liveTranscriptActive=false;
+let liveFinalText="";
+let favFilter="all";
+let datePickerOpen=false;
+let datePickerAnchor=null;
+let datePickerTargetInput=null;
+let datePickerTargetText=null;
+let dateCursor=new Date(today.getFullYear(),today.getMonth(),1);
+let timePickerOpen=false;
+let timePickerAnchor=null;
+let timePickerTargetInput=null;
+let timePickerTargetBtn=null;
+let timePickerHour=9;
+let timePickerMinute=0;
+let timePickerMinMinutes=null;
+const markedDateSet = new Set();
+
+const iso=(d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const parseISO=(s)=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
+const sameDay=(a,b)=>a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+const pad2=(n)=>String(Math.max(0,Math.min(99,Number(n)||0))).padStart(2,"0");
+const isValidHHMM=(v)=>/^\d{2}:\d{2}$/.test(v);
+const toMinutes=(v)=>{
+  if(!isValidHHMM(v)) return null;
+  const [h,m]=v.split(":").map(Number);
+  return h*60+m;
+};
+const fromMinutes=(mins)=>{
+  const safe=Math.max(0,Math.min(1439,Number(mins)||0));
+  return {hour:Math.floor(safe/60),minute:safe%60};
+};
+const isEndBeforeStart=(start,end)=>{
+  const s=toMinutes(start);
+  const e=toMinutes(end);
+  if(s===null || e===null) return false;
+  return e<s;
+};
+const clampNote=(text)=>String(text||"").slice(0,300);
+const updateNoteCount=(inputEl,countEl)=>{
+  if(!inputEl || !countEl) return;
+  const value=clampNote(inputEl.value);
+  if(value!==inputEl.value) inputEl.value=value;
+  countEl.textContent=String(value.length);
+};
+
+function buildWave(){
+  let h="";for(let i=0;i<46;i++){const hv=10+Math.round(Math.abs(Math.sin(i*.6))*44);const dl=(i*.05).toFixed(2);h+=`<span style="--h:${hv}px;animation-delay:${dl}s"></span>`;}
+  el.wave.innerHTML=h;
+}
+function setSendButtonMode(mode){
+  if(mode==="stop"){
+    el.addBtn.classList.add("stop");
+    el.addBtn.title=isZh()?"终止处理":"Stop processing";
+    el.addBtn.innerHTML=STOP_ICON;
+    return;
+  }
+  el.addBtn.classList.remove("stop");
+  el.addBtn.title=isZh()?"发送":"Send";
+  el.addBtn.innerHTML=SEND_ICON;
+}
+
+function greet(){
+  const h=new Date().getHours();
+  return h<12?t("greetMorning"):h<18?t("greetAfternoon"):t("greetEvening");
+}
+function fmtTimeRange(it){
+  if(it.startTime&&it.endTime)return `${it.startTime} – ${it.endTime}`;
+  if(it.startTime)return it.startTime;return t("allDay");
+}
+function durationLabel(m){
+  const v=Number(m)||0;if(v<=0)return "";
+  if(isZh()){if(v%60===0)return `${v/60}小时`;if(v>60)return `${Math.floor(v/60)}小时${v%60}分`;return `${v}分钟`;}
+  if(v%60===0)return `${v/60}h`;if(v>60)return `${Math.floor(v/60)}h ${v%60}m`;return `${v}m`;
+}
+/* localized date formatters */
+const fmtHeroDate=(d)=>isZh()?`${d.getMonth()+1}月${d.getDate()}日`:`${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`;
+const fmtWeekdayFull=(d)=>isZh()?`星期${WEEK_ZH[d.getDay()]}`:WEEKDAY_FULL_EN[d.getDay()];
+const fmtMonthTitle=(d)=>isZh()?`${d.getFullYear()}年${d.getMonth()+1}月`:`${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+const fmtShortDate=(d)=>isZh()?`${d.getMonth()+1}月${d.getDate()}日`:`${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`;
+const fmtPillDate=(d)=>t("dateDisplay",{m:String(d.getMonth()+1),d:String(d.getDate()),w:isZh()?`周${WEEK_ZH[d.getDay()]}`:WEEK[d.getDay()]});
+const weekHeaders=()=>isZh()?WEEK_ZH:WEEK;
+const miniHeaders=()=>isZh()?WEEK_ZH:WEEK1;
+const validDate=(s)=>/^\d{4}-\d{2}-\d{2}$/.test(String(s||""));
+
+function sortByTime(a,b){return (a.startTime||"99:99").localeCompare(b.startTime||"99:99");}
+function eventsOn(d){return schedules.filter(s=>s.date===iso(d)).sort(sortByTime);}
+function parseScheduleStartMs(it){
+  if(!it?.date) return Number.POSITIVE_INFINITY;
+  const t=(it.startTime||"23:59").trim();
+  const stamp=`${it.date}T${t.length===5?`${t}:00`:"23:59:00"}`;
+  const ms=new Date(stamp).getTime();
+  return Number.isFinite(ms)?ms:Number.POSITIVE_INFINITY;
+}
+function isCompleted(it){ return isScheduleEnded(it); }
+function scheduleEndMs(it){
+  const start=parseScheduleStartMs(it);
+  if(!Number.isFinite(start)) return Number.NEGATIVE_INFINITY;
+  const minutes=Math.max(Number(it.duration)||0, (it.endTime&&isValidHHMM(it.endTime)) ? (toMinutes(it.endTime)-toMinutes(it.startTime)) : 0, 30);
+  return start + (minutes>0?minutes:30)*60000;
+}
+function isScheduleEnded(it){ return scheduleEndMs(it) <= Date.now(); }
+function listByStatus(list){
+  if(statusFilter==="done") return list.filter(isCompleted);
+  if(statusFilter==="todo") return list.filter((x)=>!isCompleted(x));
+  return list;
+}
+
+function normalize(raw,desc){
+  const it={
+    title:(raw.title||"").trim()||desc||"Voice Event",
+    date:(raw.date||"").trim()||iso(today),
+    startTime:(raw.startTime||raw.time||"").trim(),
+    endTime:(raw.endTime||"").trim(),
+    duration:Number(raw.duration)||0,
+    desc:(raw.desc||desc||"").trim()
+  };
+  if(it.duration<=0&&it.startTime&&it.endTime){
+    const[sh,sm]=it.startTime.split(":").map(Number),[eh,em]=it.endTime.split(":").map(Number);
+    let mins=(eh*60+em)-(sh*60+sm);if(mins<0)mins+=1440;it.duration=mins;
+  }
+  it.color=DOTS[schedules.length%DOTS.length];
+  return it;
+}
+function toScheduleFromDB(raw){
+  return {
+    id: Number(raw?.id)||0,
+    title:(raw?.title||"").trim() || "Voice Event",
+    date:(raw?.date||"").trim() || iso(today),
+    startTime:(raw?.startTime||"").trim(),
+    endTime:(raw?.endTime||"").trim(),
+    duration:Number(raw?.duration)||0,
+    isImportant:Boolean(raw?.isImportant),
+    desc:(raw?.desc||"").trim(),
+    color:DOTS[schedules.length%DOTS.length]
+  };
+}
+function resetSchedules(items){
+  schedules.splice(0, schedules.length, ...items.map((it,idx)=>({...it,color:DOTS[idx%DOTS.length]})));
+}
+async function fetchAllSchedules(){
+  const rows = await listSchedulesDB();
+  const normalized = (Array.isArray(rows)?rows:[]).map(toScheduleFromDB);
+  resetSchedules(normalized);
+}
+async function fetchAllSchedulesCache(){
+  const rows = await listSchedulesDB();
+  const normalized = (Array.isArray(rows)?rows:[]).map((raw,idx)=>({
+    ...toScheduleFromDB(raw),
+    color:DOTS[idx % DOTS.length],
+  }));
+  allSchedulesCache.splice(0, allSchedulesCache.length, ...normalized);
+}
+async function fetchSchedulesByDate(date){
+  const rows = await listSchedulesByDateDB(date);
+  const normalized = (Array.isArray(rows)?rows:[]).map(toScheduleFromDB);
+  resetSchedules(normalized);
+}
+async function refreshByCurrentFilter(){
+  if(activeFilterDate) await fetchSchedulesByDate(activeFilterDate);
+  else await fetchAllSchedules();
+  await fetchAllSchedulesCache();
+  await refreshMarkedDatesForMonth(monthCursor);
+}
+async function refreshMarkedDatesForMonth(d){
+  const monthKey=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  try{
+    const rows=await listScheduledDatesByMonthDB(monthKey);
+    markedDateSet.clear();
+    (Array.isArray(rows)?rows:[]).forEach((x)=>markedDateSet.add(String(x)));
+  }catch(_){
+    markedDateSet.clear();
+  }
+}
+function positionDatePicker(){
+  if(!datePickerAnchor) return;
+  const rect = datePickerAnchor.getBoundingClientRect();
+  const top = rect.bottom + 8;
+  const left = Math.min(window.innerWidth - 332, Math.max(12, rect.left));
+  el.dpPop.style.top = `${top}px`;
+  el.dpPop.style.left = `${left}px`;
+}
+function renderDatePicker(){
+  el.dpTitle.textContent=fmtMonthTitle(dateCursor);
+  const weeks=isZh()?["日","一","二","三","四","五","六"]:["S","M","T","W","T","F","S"];
+  el.dpWeek.innerHTML=weeks.map(w=>`<span>${w}</span>`).join("");
+  const y=dateCursor.getFullYear(), m=dateCursor.getMonth();
+  const start=new Date(y,m,1).getDay(), days=new Date(y,m+1,0).getDate();
+  const cells=[];
+  for(let i=0;i<start;i++){
+    const p=new Date(y,m,0-(start-i-1));
+    cells.push(`<button class="dp-day is-muted" type="button">${p.getDate()}</button>`);
+  }
+  const sel=validDate(datePickerTargetInput?.value)?parseISO(datePickerTargetInput.value):null;
+  for(let d=1; d<=days; d++){
+    const cur=new Date(y,m,d);
+    const cls=["dp-day",sameDay(cur,today)?"is-today":"",sel&&sameDay(cur,sel)?"is-selected":""].filter(Boolean).join(" ");
+    cells.push(`<button class="${cls}" data-date="${iso(cur)}" type="button">${d}</button>`);
+  }
+  while(cells.length%7!==0){
+    const idx=cells.length-(start+days)+1;
+    const n=new Date(y,m+1,idx);
+    cells.push(`<button class="dp-day is-muted" type="button">${n.getDate()}</button>`);
+  }
+  el.dpGrid.innerHTML=cells.join("");
+  el.dpToday.textContent=t("dpToday");
+  el.dpClear.textContent=t("dpClear");
+}
+function closeDatePicker(){
+  datePickerOpen=false;
+  el.dpPop.classList.remove("open");
+  el.dpPop.setAttribute("aria-hidden","true");
+}
+function openDatePicker(anchorEl,inputEl,textEl){
+  if(timePickerOpen) closeTimePicker();
+  datePickerAnchor=anchorEl;
+  datePickerTargetInput=inputEl;
+  datePickerTargetText=textEl;
+  const base=validDate(inputEl.value)?parseISO(inputEl.value):(selectedDate||today);
+  dateCursor=new Date(base.getFullYear(),base.getMonth(),1);
+  renderDatePicker();
+  positionDatePicker();
+  datePickerOpen=true;
+  el.dpPop.classList.add("open");
+  el.dpPop.setAttribute("aria-hidden","false");
+}
+function setTimeButtonText(btn,inputVal){
+  if(!btn) return;
+  const v=(inputVal||"").trim();
+  btn.textContent=isValidHHMM(v)?v:"--:--";
+  btn.classList.toggle("empty",!isValidHHMM(v));
+}
+function positionTimePicker(){
+  if(!timePickerAnchor || !el.timePickerPop) return;
+  const rect=timePickerAnchor.getBoundingClientRect();
+  const popW=340;
+  const left=Math.min(window.innerWidth-popW-12,Math.max(12,rect.left+rect.width/2-popW/2));
+  const top=Math.min(window.innerHeight-286,rect.bottom+10);
+  el.timePickerPop.style.left=`${left}px`;
+  el.timePickerPop.style.top=`${Math.max(12,top)}px`;
+}
+function renderTimePickerItems(){
+  if(!el.tpHourCol || !el.tpMinuteCol) return;
+  const hourItems=Array.from({length:24},(_,i)=>`<div class="tp-item" data-hour="${i}">${pad2(i)}</div>`).join("");
+  const minuteItems=Array.from({length:12},(_,i)=>`<div class="tp-item" data-minute="${i*5}">${pad2(i*5)}</div>`).join("");
+  el.tpHourCol.innerHTML=hourItems;
+  el.tpMinuteCol.innerHTML=minuteItems;
+}
+function centerPickerToValue(col,attr,val){
+  const node=col?.querySelector(`.tp-item[data-${attr}="${Number(val)}"]`);
+  if(!node) return;
+  const target=node.offsetTop-(col.clientHeight-node.clientHeight)/2;
+  col.scrollTo({top:target,behavior:"smooth"});
+}
+function snapPickerCol(col,attr){
+  if(!col) return 0;
+  const center=col.scrollTop+col.clientHeight/2;
+  let best=null;
+  let bestDist=Infinity;
+  col.querySelectorAll(".tp-item").forEach((node)=>{
+    const mid=node.offsetTop+node.clientHeight/2;
+    const dist=Math.abs(mid-center);
+    if(dist<bestDist){bestDist=dist;best=node;}
+  });
+  if(!best) return 0;
+  const target=best.offsetTop-(col.clientHeight-best.clientHeight)/2;
+  col.scrollTo({top:target,behavior:"smooth"});
+  return Number(best.dataset[attr]||0);
+}
+function refreshTimePickerActive(){
+  el.tpHourCol?.querySelectorAll(".tp-item").forEach((n)=>n.classList.toggle("active",Number(n.dataset.hour)===timePickerHour));
+  el.tpMinuteCol?.querySelectorAll(".tp-item").forEach((n)=>n.classList.toggle("active",Number(n.dataset.minute)===timePickerMinute));
+}
+function enforceTimePickerMinForEnd(animate=true){
+  if(timePickerMinMinutes===null) return;
+  const current=timePickerHour*60+timePickerMinute;
+  if(current>=timePickerMinMinutes) return;
+  const next=fromMinutes(timePickerMinMinutes);
+  timePickerHour=next.hour;
+  timePickerMinute=next.minute;
+  refreshTimePickerActive();
+  centerPickerToValue(el.tpHourCol,"hour",timePickerHour);
+  centerPickerToValue(el.tpMinuteCol,"minute",timePickerMinute);
+}
+function closeTimePicker(){
+  timePickerOpen=false;
+  timePickerAnchor=null;
+  timePickerTargetInput=null;
+  timePickerTargetBtn=null;
+  timePickerMinMinutes=null;
+  if(el.timePickerPop){
+    el.timePickerPop.classList.remove("open");
+    el.timePickerPop.setAttribute("aria-hidden","true");
+  }
+}
+function openTimePicker(anchorEl,inputEl,btnEl,isEnd=false){
+  closeDatePicker();
+  const cur=(inputEl?.value||"").trim();
+  if(isValidHHMM(cur)){
+    const [h,m]=cur.split(":").map(Number);
+    timePickerHour=h;
+    timePickerMinute=Math.floor((m||0)/5)*5;
+  }else{
+    timePickerHour=isEnd?10:9;
+    timePickerMinute=30;
+  }
+  timePickerAnchor=anchorEl;
+  timePickerTargetInput=inputEl;
+  timePickerTargetBtn=btnEl;
+  if(isEnd){
+    const startInput = inputEl===el.addEndInput ? el.addStartInput : (inputEl===el.editEndInput ? el.editStartInput : null);
+    timePickerMinMinutes = startInput ? toMinutes(startInput.value) : null;
+  }else{
+    timePickerMinMinutes = null;
+  }
+  if(timePickerMinMinutes!==null){
+    const cur=timePickerHour*60+timePickerMinute;
+    if(cur<timePickerMinMinutes){
+      const next=fromMinutes(timePickerMinMinutes);
+      timePickerHour=next.hour;
+      timePickerMinute=next.minute;
+    }
+  }
+  if(el.tpTitle) el.tpTitle.textContent=t(isEnd?"tpTitleEnd":"tpTitleStart");
+  if(el.tpCancel) el.tpCancel.textContent=t("tpCancel");
+  if(el.tpDone) el.tpDone.textContent=t("tpDone");
+  renderTimePickerItems();
+  refreshTimePickerActive();
+  centerPickerToValue(el.tpHourCol,"hour",timePickerHour);
+  centerPickerToValue(el.tpMinuteCol,"minute",timePickerMinute);
+  positionTimePicker();
+  timePickerOpen=true;
+  el.timePickerPop.classList.add("open");
+  el.timePickerPop.setAttribute("aria-hidden","false");
+}
+function commitTimePicker(){
+  if(!timePickerTargetInput || !timePickerTargetBtn){ closeTimePicker(); return; }
+  const v=`${pad2(timePickerHour)}:${pad2(timePickerMinute)}`;
+  const isEndTarget=timePickerTargetInput===el.addEndInput || timePickerTargetInput===el.editEndInput;
+  const startInput = (timePickerTargetInput===el.addEndInput) ? el.addStartInput : (timePickerTargetInput===el.editEndInput ? el.editStartInput : null);
+  if(isEndTarget && startInput && isEndBeforeStart(startInput.value,v)){
+    showToast(isZh()?"结束时间不能早于开始时间":"End time cannot be earlier than start time");
+    return;
+  }
+  timePickerTargetInput.value=v;
+  setTimeButtonText(timePickerTargetBtn,v);
+  timePickerTargetInput.dispatchEvent(new Event("input"));
+  timePickerTargetInput.dispatchEvent(new Event("change"));
+  closeTimePicker();
+}
+
+function renderHero(){
+  el.greeting.textContent=greet();
+  el.heroDate.textContent=fmtHeroDate(selectedDate);
+  el.heroWeekday.textContent=fmtWeekdayFull(selectedDate);
+  const n=eventsOn(selectedDate).length;
+  const isToday=sameDay(selectedDate,today);
+  const unit=n===1?"event":"events";
+  el.countText.textContent=t(isToday?"countToday":"countDay",{n:String(n),unit});
+  el.heroNote.style.display=n===0?"inline-flex":"none";
+}
+
+function renderMain(){
+  el.calTitle.textContent=fmtMonthTitle(monthCursor);
+  el.calWeekrow.innerHTML=weekHeaders().map(w=>`<span>${w}</span>`).join("");
+  const y=monthCursor.getFullYear(),m=monthCursor.getMonth();
+  const start=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();
+  const cells=[];
+  for(let i=0;i<start;i++){const d=new Date(y,m,0-(start-i-1));cells.push(cell(d,true));}
+  for(let d=1;d<=days;d++)cells.push(cell(new Date(y,m,d),false));
+  while(cells.length%7!==0){const idx=cells.length-(start+days)+1;cells.push(cell(new Date(y,m+1,idx),true));}
+  el.calGrid.innerHTML=cells.join("");
+}
+function cell(d,other){
+  const key=iso(d);
+  const cls=["cell",other?"other":"",sameDay(d,today)?"today":"",sameDay(d,selectedDate)?"selected":""].filter(Boolean).join(" ");
+  const has=!other && markedDateSet.has(key);
+  const lunar=other?"":LUNAR[(d.getDate()-1)%30];
+  return `<button class="${cls}" data-date="${key}"><span class="cell-num">${d.getDate()}</span><span class="cell-lunar">${lunar}</span>${has?'<span class="cell-dot"></span>':""}</button>`;
+}
+
+function renderMini(){
+  el.miniTitle.textContent=fmtMonthTitle(monthCursor);
+  el.miniWeek.innerHTML=miniHeaders().map(w=>`<span>${w}</span>`).join("");
+  const y=monthCursor.getFullYear(),m=monthCursor.getMonth();
+  const start=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();
+  const cells=[];
+  for(let i=0;i<start;i++){const d=new Date(y,m,0-(start-i-1));cells.push(mini(d,true));}
+  for(let d=1;d<=days;d++)cells.push(mini(new Date(y,m,d),false));
+  while(cells.length%7!==0){const idx=cells.length-(start+days)+1;cells.push(mini(new Date(y,m+1,idx),true));}
+  el.miniGrid.innerHTML=cells.join("");
+}
+function mini(d,other){
+  const cls=["mini-cell",other?"other":"",sameDay(d,today)?"today":"",sameDay(d,selectedDate)?"selected":""].filter(Boolean).join(" ");
+  return `<button class="${cls}" data-date="${iso(d)}">${d.getDate()}</button>`;
+}
+
+function renderTodayPanel(){
+  const list=listByStatus(eventsOn(selectedDate));
+  const prefix=sameDay(selectedDate,today)?t("todayPrefix"):(isZh()?WEEKDAY_ZH[selectedDate.getDay()]:WEEK[selectedDate.getDay()]);
+  el.todayCardTitle.textContent=`${prefix} · ${fmtShortDate(selectedDate)}`;
+  const addBtn=`<div style="display:flex;justify-content:center"><button class="add-event" id="quick-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>${t("addEvent")}</button></div>`;
+  if(!list.length){
+    el.todayBody.innerHTML=`
+      <div class="today-illu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4M9 14l2 2 4-4"/></svg></div>
+      <div class="today-empty"><h4>${t("noEvents")}</h4><p>${t("freeTime")}</p></div>
+      ${addBtn}`;
+  }else{
+    el.todayBody.innerHTML=`<div class="today-events">${list.map(it=>`
+      <div class="tev ${isCompleted(it)?"is-completed":""}" data-schedule-id="${it.id||0}" data-conflict-key="${scheduleConflictKey(it)}">
+        <span class="bar" style="background:${it.color}"></span>
+        <div class="tev-main">
+          <div class="tev-t">${it.title}</div>
+          <div class="tev-s">${fmtTimeRange(it)}${durationLabel(it.duration)?" · "+durationLabel(it.duration):""}</div>
+        </div>
+        <button class="tev-edit" data-edit-id="${it.id||0}" title="${t("edit")}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="m16.5 3.5 4 4L8 20l-4 1 1-4z"/></svg>
+        </button>
+        <button class="tev-fav ${it.isImportant?"active":""}" data-fav-id="${it.id||0}" data-fav-val="${it.isImportant?"1":"0"}" title="Important">
+          <svg viewBox="0 0 24 24" fill="${it.isImportant?"currentColor":"none"}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg>
+        </button>
+        <button class="tev-del" data-del-id="${it.id||0}" data-del-date="${it.date}" data-del-title="${it.title}" title="${t("deleted")}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M7 6l1 14h8l1-14M10 11v6M14 11v6"/></svg>
+        </button>
+      </div>`).join("")}</div>
+      ${addBtn}`;
+  }
+  const qa=$("quick-add");if(qa)qa.addEventListener("click",()=>el.cmdInput.focus());
+  el.todayBody.querySelectorAll(".tev-edit").forEach((btn)=>{
+    btn.addEventListener("click",(ev)=>{
+      ev.stopPropagation();
+      const id = Number(btn.dataset.editId)||0;
+      const item = schedules.find((s)=>Number(s.id)===id);
+      if(!item) return;
+      openEditDialog(item);
+    });
+  });
+  el.todayBody.querySelectorAll(".tev-del").forEach((btn)=>{
+    btn.addEventListener("click", async (ev)=>{
+      ev.stopPropagation();
+      const id = Number(btn.dataset.delId)||0;
+      const date = (btn.dataset.delDate||"").trim();
+      const title = (btn.dataset.delTitle||"").trim();
+      try{
+        if(id>0 && !(await confirmDelete(t("confirmDeleteOne")))) return;
+        if(!(id>0) && date && title && !(await confirmDelete(t("confirmDeleteByDateTitle",{date,title})))) return;
+        if(id>0) await deleteScheduleByIDDB(id);
+        else if(date && title) await deleteScheduleByDateTitleDB(date,title);
+        else return;
+        await refreshByCurrentFilter();
+        renderAll();
+        showToast(t("toast.deleted",{n:"1"}));
+      }catch(err){
+        showToast(`${t("deleteFail")}: ${String(err)}`);
+      }
+    });
+  });
+  el.todayBody.querySelectorAll(".tev-fav").forEach((btn)=>{
+    btn.addEventListener("click", async (ev)=>{
+      ev.stopPropagation();
+      const id=Number(btn.dataset.favId)||0;
+      if(!id) return;
+      const current=btn.dataset.favVal==="1";
+      try{
+        await setScheduleImportantDB(id, !current);
+        await refreshByCurrentFilter();
+        renderAll();
+        if(favDialogOpen) await openFavoritesDialog(true);
+      }catch(err){
+        showToast(String(err));
+      }
+    });
+  });
+}
+
+function scheduleConflictKey(it){
+  const id=Number(it?.id)||0;
+  if(id>0) return `id:${id}`;
+  return `k:${it?.date||""}|${it?.startTime||""}|${it?.title||""}`;
+}
+function timedScheduleSpans(list){
+  return list
+    .filter((it)=>isValidHHMM(it.startTime||"") && !isScheduleEnded(it))
+    .map((it)=>{
+      const start=parseScheduleStartMs(it);
+      return {start,end:scheduleEndMs(it),key:scheduleConflictKey(it)};
+    })
+    .sort((a,b)=>a.start-b.start);
+}
+function detectConflicts(list){
+  const timed=timedScheduleSpans(list);
+  const keys=new Set();
+  let count=0;
+  let active=[];
+  for(const cur of timed){
+    active=active.filter((a)=>a.end>cur.start);
+    if(active.length){
+      count++;
+      keys.add(cur.key);
+      active.forEach((a)=>keys.add(a.key));
+    }
+    active.push(cur);
+  }
+  return {count,keys:[...keys]};
+}
+let lastConflictKeys=[];
+function jumpToConflictSchedules(keys){
+  if(!keys?.length) return;
+  if(statusFilter!=="all"){
+    statusFilter="all";
+    el.statusSeg?.querySelectorAll(".status-btn").forEach((btn)=>{
+      btn.classList.toggle("active",(btn.dataset.statusFilter||"all")==="all");
+    });
+    renderTodayPanel();
+  }
+  requestAnimationFrame(()=>{
+    const keySet=new Set(keys);
+    const targets=[...el.todayBody.querySelectorAll(".tev[data-conflict-key]")]
+      .filter((node)=>keySet.has(node.dataset.conflictKey||""));
+    if(!targets.length) return;
+    targets.forEach((node)=>node.classList.add("conflict-highlight"));
+    targets[0].scrollIntoView({behavior:"smooth",block:"center"});
+    window.setTimeout(()=>targets.forEach((node)=>node.classList.remove("conflict-highlight")),3200);
+  });
+}
+function renderInsight(){
+  const list=eventsOn(selectedDate);
+  const hasConflictUi=()=>{
+    el.insightStatusWrap?.classList.remove("is-conflict");
+    if(el.insightJump){
+      el.insightJump.hidden=true;
+      lastConflictKeys=[];
+    }
+  };
+  if(!list.length){
+    hasConflictUi();
+    el.insightStatus.textContent=t("insightOk");
+    el.insightBody.textContent=t("insightOkBody");
+    return;
+  }
+  const {count:conflictCount,keys:conflictKeys}=detectConflicts(list);
+  if(conflictCount>0){
+    el.insightStatusWrap?.classList.add("is-conflict");
+    el.insightStatus.textContent=t("insightConflict");
+    el.insightBody.textContent=t("insightConflictBody",{n:String(conflictCount)});
+    lastConflictKeys=conflictKeys;
+    if(el.insightJump){
+      el.insightJump.hidden=false;
+      if(el.insightJumpText) el.insightJumpText.textContent=t("insightJump");
+    }
+    return;
+  }
+  hasConflictUi();
+  const total=list.reduce((a,b)=>a+(Number(b.duration)||0),0);
+  el.insightStatus.textContent=t("insightBusy",{n:String(list.length),dur:durationLabel(total)||t("flexible")});
+  el.insightBody.textContent=t("insightBusyBody",{n:String(list.length),s:list.length===1?"":"s"});
+}
+
+function renderUpcoming(){
+  const now=Date.now();
+  const upcoming=allSchedulesCache
+    .filter((s)=>{
+      const start=parseScheduleStartMs(s);
+      if(!Number.isFinite(start)) return false;
+      const durationMs=Math.max(Number(s.duration)||0, 30)*60000;
+      const end=start+durationMs;
+      return end>now;
+    })
+    .sort((a,b)=>parseScheduleStartMs(a)-parseScheduleStartMs(b))
+    .slice(0,4);
+  if(!upcoming.length){
+    el.upList.innerHTML=`<p style="font-size:13px;color:var(--muted-2);padding:8px">${t("nothing")}</p>`;
+    el.viewAll.style.display="none";return;
+  }
+  el.viewAll.style.display="block";
+  el.upList.innerHTML=upcoming.map(it=>{
+    const d=parseISO(it.date);
+    const when=`${fmtShortDate(d)} · ${fmtTimeRange(it)}`;
+    return `<button class="up-item" data-date="${it.date}"><span class="up-dot" style="background:${it.color}"></span><div class="up-main"><div class="up-title">${it.title}</div><div class="up-time">${when}</div></div><span class="up-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></button>`;
+  }).join("");
+}
+function allSortedSchedules(base=schedules){
+  return base.slice().sort((a,b)=>{
+    if(a.date!==b.date) return a.date.localeCompare(b.date);
+    return sortByTime(a,b);
+  });
+}
+function allItemKind(it){
+  const start=parseScheduleStartMs(it);
+  const now=Date.now();
+  const end=start + Math.max((Number(it.duration)||0), 30) * 60000;
+  if(isCompleted(it)) return "done";
+  if(start<=now && now<end) return "ongoing";
+  return "todo";
+}
+function sameIsoDate(a,b){ return iso(a)===iso(b); }
+function allGroupLabel(dateObj){
+  const base=`${fmtShortDate(dateObj)} ${isZh()?`周${WEEK_ZH[dateObj.getDay()]}`:WEEKDAY_FULL_EN[dateObj.getDay()]}`;
+  const t0=new Date(today); t0.setHours(0,0,0,0);
+  const t1=new Date(t0); t1.setDate(t1.getDate()+1);
+  if(sameIsoDate(dateObj,t0)) return t("allGroupToday",{date:base});
+  if(sameIsoDate(dateObj,t1)) return t("allGroupTomorrow",{date:base});
+  return base;
+}
+function applyAllDialogFilter(list){
+  return list.filter((it)=>{
+    const q=allDialogQuery.trim().toLowerCase();
+    if(q){
+      const hay=`${it.title||""} ${it.desc||""}`.toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    if(allDialogFilter==="all") return true;
+    return allItemKind(it)===allDialogFilter;
+  });
+}
+function renderAllSchedulesDialog(){
+  el.allTitle.textContent=t("allSchedulesTitle");
+  el.allSubtitle.textContent=t("allSchedulesSub");
+  const rowsAll=allSortedSchedules(allDialogSchedules);
+  const doneCount=rowsAll.filter((it)=>allItemKind(it)==="done").length;
+  const todoCount=rowsAll.filter((it)=>allItemKind(it)==="todo").length;
+  const filtered=applyAllDialogFilter(rowsAll);
+
+  el.allCountAll.textContent=String(rowsAll.length);
+  el.allCountTodo.textContent=String(todoCount);
+  el.allCountDone.textContent=String(doneCount);
+  el.allStatTotal.textContent=t("allTotalStat",{n:String(rowsAll.length)});
+  el.allStatTodo.textContent=t("allTodoStat",{n:String(todoCount)});
+  el.allStatDone.textContent=t("allDoneStat",{n:String(doneCount)});
+
+  if(!filtered.length){
+    el.allList.innerHTML=`<div class="all-empty">${t("allSchedulesEmpty")}</div>`;
+    return;
+  }
+  const groups=new Map();
+  filtered.forEach((it)=>{
+    if(!groups.has(it.date)) groups.set(it.date, []);
+    groups.get(it.date).push(it);
+  });
+  let html="";
+  [...groups.entries()].forEach(([date,items])=>{
+    const d=parseISO(date);
+    html+=`<div class="sc-group"><div class="sc-group-title">${allGroupLabel(d)}</div>`;
+    html+=items.map((it)=>{
+      const kind=allItemKind(it);
+      const sText=kind==="done"?t("allStatusDone"):kind==="ongoing"?t("allStatusOngoing"):t("allStatusTodo");
+      const note=(it.desc||"").trim() || (isZh()?"无备注":"No note");
+      return `<div class="sc-item ${kind==="done"?"is-completed":""}">
+        <div class="sc-time">${it.startTime||"--:--"}<span>${it.endTime||"--:--"}</span></div>
+        <span class="sc-dot ${kind}"></span>
+        <div class="sc-main">
+          <div class="title">${it.title||""}</div>
+          <div class="note">${note}</div>
+        </div>
+        <span class="sc-badge ${kind}">${sText}</span>
+      </div>`;
+    }).join("");
+    html+="</div>";
+  });
+  el.allList.innerHTML=html;
+}
+function openAllSchedulesDialog(){
+  allDialogFilter="all";
+  allDialogQuery="";
+  if(el.allSearch) el.allSearch.value="";
+  el.allTabs?.querySelectorAll(".sc-tab").forEach((b)=>b.classList.toggle("active",b.dataset.allFilter==="all"));
+  listSchedulesDB().then((rows)=>{
+    const normalized=(Array.isArray(rows)?rows:[]).map((raw,idx)=>({
+      ...toScheduleFromDB(raw),
+      color:DOTS[idx % DOTS.length],
+    }));
+    allDialogSchedules=normalized;
+    renderAllSchedulesDialog();
+    allDialogOpen=true;
+    el.allMask.classList.add("open");
+    el.allMask.setAttribute("aria-hidden","false");
+  }).catch((err)=>{
+    showToast(String(err));
+  });
+}
+function closeAllSchedulesDialog(){
+  allDialogOpen=false;
+  el.allMask.classList.remove("open");
+  el.allMask.setAttribute("aria-hidden","true");
+}
+function relativeWhen(dateStr){
+  const d=parseISO(dateStr);
+  const base=new Date(today);base.setHours(0,0,0,0);
+  const diff=Math.floor((d.getTime()-base.getTime())/86400000);
+  if(diff===0) return isZh()?"今天":"Today";
+  if(diff===1) return isZh()?"明天":"Tomorrow";
+  if(diff<0) return isZh()?"已完成":"Completed";
+  if(diff>1 && diff<=7) return isZh()?`${diff}天后`:`In ${diff} days`;
+  return isZh()?`下周${WEEK_ZH[d.getDay()]}`:`Next ${WEEKDAY_FULL_EN[d.getDay()]}`;
+}
+async function openFavoritesDialog(refreshOnly=false){
+  if(!refreshOnly){
+    favFilter="all";
+    el.favPillTotal.classList.add("active");
+    el.favPillWeek.classList.remove("active");
+    el.favPillMonth.classList.remove("active");
+  }
+  const rows=await listImportantSchedulesDB();
+  favoriteSchedules=(Array.isArray(rows)?rows:[]).map((raw,idx)=>({
+    ...toScheduleFromDB(raw),
+    color:DOTS[idx % DOTS.length],
+  }));
+  const now=new Date();
+  const weekEnd=new Date(now); weekEnd.setDate(weekEnd.getDate()+7);
+  const monthKey=`${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,"0")}`;
+  const weekCount=favoriteSchedules.filter((x)=>parseISO(x.date)>=today && parseISO(x.date)<=weekEnd).length;
+  const monthCount=favoriteSchedules.filter((x)=>String(x.date||"").startsWith(monthKey)).length;
+  el.favPillTotal.textContent=t("importantTotal",{n:String(favoriteSchedules.length)});
+  el.favPillWeek.textContent=t("importantWeek",{n:String(weekCount)});
+  el.favPillMonth.textContent=t("importantMonth",{n:String(monthCount)});
+  const data = favoriteSchedules.filter((it)=>{
+    if(favFilter==="week"){
+      return parseISO(it.date)>=today && parseISO(it.date)<=weekEnd;
+    }
+    if(favFilter==="month"){
+      return String(it.date||"").startsWith(monthKey);
+    }
+    return true;
+  });
+
+  if(!data.length){
+    el.favList.innerHTML=`<div class="fav-empty"><div><div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg></div><div class="title">${t("importantEmptyTitle")}</div><div class="sub">${t("importantEmptySub")}</div></div></div>`;
+  }else{
+    el.favList.innerHTML=data.map((it)=>{
+      const done=isCompleted(it);
+      const d=parseISO(it.date);
+      const dateLine=`${fmtShortDate(d)} · ${isZh()?`周${WEEK_ZH[d.getDay()]}`:WEEKDAY_FULL_EN[d.getDay()]} · ${fmtTimeRange(it)}`;
+      return `<div class="fav-card ${done?"is-completed":""}"><div class="fav-star"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.6"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg></div><div class="fav-main"><div class="t">${it.title||""}</div><div class="dt">${dateLine}</div><div class="desc">${(it.desc||"").trim()|| (isZh()?"无备注":"No note")}</div></div><div class="fav-right"><span class="fav-when ${done?"done":""}">${done?(isZh()?"已完成":"Completed"):relativeWhen(it.date)}</span><button class="fav-remove" data-fav-remove-id="${it.id}">${isZh()?"移除重要":"Remove"}</button></div></div>`;
+    }).join("");
+    el.favList.querySelectorAll(".fav-remove").forEach((btn)=>{
+      btn.addEventListener("click", async ()=>{
+        const id=Number(btn.dataset.favRemoveId)||0;
+        if(!id) return;
+        try{
+          await setScheduleImportantDB(id,false);
+          await refreshByCurrentFilter();
+          renderAll();
+          await openFavoritesDialog(true);
+        }catch(err){
+          showToast(String(err));
+        }
+      });
+    });
+  }
+  if(!refreshOnly){
+    favDialogOpen=true;
+    el.favMask.classList.add("open");
+    el.favMask.setAttribute("aria-hidden","false");
+  }
+}
+function closeFavoritesDialog(){
+  favDialogOpen=false;
+  el.favMask.classList.remove("open");
+  el.favMask.setAttribute("aria-hidden","true");
+}
+
+function renderAll(){renderHero();renderMain();renderMini();renderTodayPanel();renderInsight();renderUpcoming();}
+
+function showToast(text){clearTimeout(toastTimer);el.toast.textContent=text;el.toast.classList.add("show");toastTimer=setTimeout(()=>el.toast.classList.remove("show"),2200);}
+function closeConfirmDialog(result){
+  el.confirmMask.classList.remove("open");
+  el.confirmMask.setAttribute("aria-hidden","true");
+  const resolver = confirmResolver;
+  confirmResolver = null;
+  if(resolver) resolver(result);
+}
+function openConfirmDialog(message){
+  el.confirmTitle.textContent=t("confirmTitle");
+  el.confirmText.textContent=message;
+  el.confirmOk.textContent=t("confirmOk");
+  el.confirmCancel.textContent=t("confirmCancel");
+  el.confirmMask.classList.add("open");
+  el.confirmMask.setAttribute("aria-hidden","false");
+  return new Promise((resolve)=>{ confirmResolver = resolve; });
+}
+async function confirmDelete(message){
+  const ok = await openConfirmDialog(message);
+  if(!ok) showToast(t("toast.deleteCanceled"));
+  return ok;
+}
+function closeEditDialog(){
+  if(datePickerOpen && datePickerAnchor===el.editDatePill) closeDatePicker();
+  if(timePickerOpen) closeTimePicker();
+  el.editMask.classList.remove("open");
+  el.editMask.setAttribute("aria-hidden","true");
+  editingScheduleId=0;
+  updateCommandBarVisibility();
+}
+function openEditDialog(item){
+  editingScheduleId = Number(item.id)||0;
+  el.editTitle.textContent=t("editTitle");
+  el.editSubtitle.textContent=t("editSub");
+  el.editTitleInput.value=item.title||"";
+  el.editStartInput.value=item.startTime||"";
+  el.editEndInput.value=item.endTime||"";
+  el.editDescInput.value=clampNote(item.desc||"");
+  el.editTitleInput.placeholder=t("editLabelTitle");
+  const d = parseISO(item.date||iso(today));
+  el.editDateInput.value = iso(d);
+  el.editDateText.textContent=fmtPillDate(d);
+  setTimeButtonText(el.editStartBtn,el.editStartInput.value);
+  setTimeButtonText(el.editEndBtn,el.editEndInput.value);
+  if(el.editSummaryTitle) el.editSummaryTitle.textContent=`● ${item.title||""}`;
+  if(el.editSummaryDate) el.editSummaryDate.textContent=`📅 ${fmtPillDate(d)}`;
+  if(el.editSummaryTime) el.editSummaryTime.textContent=`🕒 ${(item.startTime||"--:--")} - ${(item.endTime||"--:--")}`;
+  const noteText=(item.desc||"").trim();
+  if(el.editSummaryNote) el.editSummaryNote.textContent=noteText?`📍 ${noteText}`:(isZh()?"📍 暂无备注":"📍 No note");
+  if(el.editNotesCard) el.editNotesCard.classList.toggle("expanded",Boolean(noteText));
+  updateNoteCount(el.editDescInput,el.editNoteCount);
+  el.editMask.classList.add("open");
+  el.editMask.setAttribute("aria-hidden","false");
+  updateCommandBarVisibility();
+}
+function closeAddDialog(){
+  closeDatePicker();
+  closeTimePicker();
+  el.addMask.classList.remove("open");
+  el.addMask.setAttribute("aria-hidden","true");
+  updateCommandBarVisibility();
+}
+function openAddDialog(){
+  el.addTitle.textContent=t("addTitle");
+  el.addSubtitle.textContent=t("addSub");
+  el.addCancel.textContent=t("addCancel");
+  el.addSave.textContent=t("addSave");
+  el.addNoteToggle.textContent=t("addNotesToggle");
+
+  const d = selectedDate || today;
+  el.addDateInput.value = iso(d);
+  el.addDateText.textContent=fmtPillDate(d);
+  el.addTitleInput.value = "";
+  el.addStartInput.value = "";
+  el.addEndInput.value = "";
+  el.addDescInput.value = "";
+  el.addTitleInput.placeholder=t("titlePlaceholder");
+  el.addDescInput.placeholder=t("notePlaceholder");
+  if(el.addNotesCard) el.addNotesCard.classList.remove("expanded");
+  updateNoteCount(el.addDescInput,el.addNoteCount);
+  setTimeButtonText(el.addStartBtn,el.addStartInput.value);
+  setTimeButtonText(el.addEndBtn,el.addEndInput.value);
+  el.addMask.classList.add("open");
+  el.addMask.setAttribute("aria-hidden","false");
+  updateCommandBarVisibility();
+}
+
+function updateCommandBarVisibility(){
+  const hideForEditor = el.addMask.classList.contains("open") || el.editMask.classList.contains("open");
+  el.cmd.classList.toggle("is-hidden", hideForEditor);
+}
+
+/* ---- theme ---- */
+function applyTheme(theme){
+  document.documentElement.dataset.theme=theme==="dark"?"dark":"";
+  el.themeIcon.innerHTML=theme==="dark"
+    ? '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'
+    : '<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+  el.themeSeg.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.themeOpt===theme));
+  localStorage.setItem("voiceflow.theme",theme);
+}
+
+/* ---- i18n ---- */
+function applyI18n(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i18n]").forEach(node=>{
+    const key=node.getAttribute("data-i18n");const val=t(key);
+    if(val&&val!==key)node.textContent=val;
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach(node=>{
+    const key=node.getAttribute("data-i18n-ph");const val=t(key);
+    if(val&&val!==key)node.setAttribute("placeholder",val);
+  });
+  el.langSeg.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.lang===lang));
+  el.editTitle.textContent=t("editTitle");
+  el.editCancel.textContent=t("editCancel");
+  el.editSave.textContent=t("editSave");
+  el.addTitle.textContent=t("addTitle");
+  el.addCancel.textContent=t("addCancel");
+  el.addSave.textContent=t("addSave");
+  if(el.addSubtitle) el.addSubtitle.textContent=t("addSub");
+  if(el.editSubtitle) el.editSubtitle.textContent=t("editSub");
+  if(el.addNoteToggle) el.addNoteToggle.textContent=t("addNotesToggle");
+  if(el.tpCancel) el.tpCancel.textContent=t("tpCancel");
+  if(el.tpDone) el.tpDone.textContent=t("tpDone");
+  if(el.tpTitle && timePickerOpen){
+    const isEndTarget = timePickerTargetInput===el.addEndInput || timePickerTargetInput===el.editEndInput;
+    el.tpTitle.textContent=t(isEndTarget?"tpTitleEnd":"tpTitleStart");
+  }
+  if(el.statusSeg){
+    const allBtn=el.statusSeg.querySelector('[data-status-filter="all"]');
+    const todoBtn=el.statusSeg.querySelector('[data-status-filter="todo"]');
+    const doneBtn=el.statusSeg.querySelector('[data-status-filter="done"]');
+    if(allBtn) allBtn.textContent=t("statusAll");
+    if(todoBtn) todoBtn.textContent=t("statusTodo");
+    if(doneBtn) doneBtn.textContent=t("statusDone");
+  }
+  if(el.allTitle) el.allTitle.textContent=t("allSchedulesTitle");
+  if(el.allSubtitle) el.allSubtitle.textContent=t("allSchedulesSub");
+  if(el.allSearch) el.allSearch.setAttribute("placeholder",t("allSearchPlaceholder"));
+  if(el.allExportLabel) el.allExportLabel.textContent=t("allExportBtn");
+  if(el.favTitle) el.favTitle.textContent=t("importantTitle");
+  if(el.favSub) el.favSub.textContent=t("importantSub");
+  if(el.allTabAll) el.allTabAll.textContent=t("statusAll");
+  if(el.allTabTodo) el.allTabTodo.textContent=t("statusTodo");
+  if(el.allTabDone) el.allTabDone.textContent=t("statusDone");
+  if(favDialogOpen) openFavoritesDialog(true);
+  if(allDialogOpen) renderAllSchedulesDialog();
+  if(el.addTitleInput) el.addTitleInput.placeholder=t("titlePlaceholder");
+  if(el.editTitleInput) el.editTitleInput.placeholder=t("titlePlaceholder");
+  if(el.addDescInput) el.addDescInput.placeholder=t("notePlaceholder");
+  if(el.editDescInput) el.editDescInput.placeholder=t("notePlaceholder");
+  if(datePickerOpen) renderDatePicker();
+  setTimeButtonText(el.addStartBtn,el.addStartInput?.value||"");
+  setTimeButtonText(el.addEndBtn,el.addEndInput?.value||"");
+  setTimeButtonText(el.editStartBtn,el.editStartInput?.value||"");
+  setTimeButtonText(el.editEndBtn,el.editEndInput?.value||"");
+  updateNoteCount(el.addDescInput,el.addNoteCount);
+  updateNoteCount(el.editDescInput,el.editNoteCount);
+  renderAll();
+}
+function setLang(next){
+  if(!DICT[next]||next===lang)return;
+  lang=next;localStorage.setItem("voiceflow.locale",next);applyI18n();
+}
+
+/* ---- voice ---- */
+function blobToBase64(blob){return new Promise((res,rej)=>{const r=new FileReader();r.onloadend=()=>res(String(r.result).split(",")[1]);r.onerror=()=>rej(new Error("audio read error"));r.readAsDataURL(blob);});}
+const mimeToFormat=(m)=>m.includes("webm")?"webm":m.includes("ogg")?"opus":m.includes("wav")?"wav":m.includes("mp3")?"mp3":"webm";
+
+async function parseAndAdd(text){
+  const value=(text||"").trim();if(!value)return;
+  showToast(t("toast.thinking"));
+  let parsed=[];
+  try{
+    const result=await ParseSchedule(value);
+    parsed=(Array.isArray(result)?result:[result]).map(x=>normalize(x,value)).filter(x=>x.title);
+  }catch(err){showToast(String(err));}
+  if(!parsed.length)parsed=[normalize({title:value,desc:value},value)];
+  for (const it of parsed) {
+    try {
+      await createScheduleDB({
+        title: it.title,
+        date: it.date,
+        startTime: it.startTime,
+        endTime: it.endTime,
+        duration: it.duration,
+        desc: it.desc
+      });
+    } catch (err) {
+      showToast(String(err));
+    }
+  }
+  if(activeFilterDate){
+    await fetchSchedulesByDate(activeFilterDate);
+  }else{
+    await fetchAllSchedules();
+  }
+  selectedDate=parseISO(parsed[0].date);
+  monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
+  renderAll();
+  showToast(t("toast.added",{title:parsed[0].title}));
+  el.cmdInput.value="";
+}
+
+function wantsDeleteAllSchedules(text){
+  const n=normalizeControlText(text);
+  return /全部|所有|全删|清空|allschedules|all/.test(n);
+}
+
+async function tryDeleteByVoice(text){
+  let intent=null;
+  try{
+    intent = await parseDeleteIntentDB(text);
+  }catch(_){
+    return false;
+  }
+  if(!intent || intent.action!=="delete") return false;
+  const date=(intent.date||"").trim();
+  const title=(intent.title||"").trim();
+  const startTime=(intent.startTime||"").trim();
+  const hasExplicitTarget = Number(intent.id)>0 || date || title || startTime;
+  // 删除必须有明确目标，否则视为非删除，交由后续新增流程处理。
+  if(!hasExplicitTarget) return false;
+
+  let affected = 0;
+  try{
+    if(Number(intent.id)>0){
+      if(!(await confirmDelete(t("confirmDeleteOne")))) return true;
+      await deleteScheduleByIDDB(Number(intent.id));
+      affected = 1;
+    }else if(date && title && startTime){
+      if(!(await confirmDelete(t("confirmDeleteByDateTitleTime",{date,title,time:startTime})))) return true;
+      affected = Number(await deleteScheduleByDateTitleTimeDB(date, title, startTime))||0;
+    }else if(date && title){
+      if(!(await confirmDelete(t("confirmDeleteByDateTitle",{date,title})))) return true;
+      affected = Number(await deleteScheduleByDateTitleDB(date, title))||0;
+    }else if(date && startTime){
+      if(!(await confirmDelete(t("confirmDeleteByDateTime",{date,time:startTime})))) return true;
+      affected = Number(await deleteScheduleByDateTimeDB(date, startTime))||0;
+    }else if(date && wantsDeleteAllSchedules(text)){
+      if(!(await confirmDelete(t("confirmDeleteByDateAll",{date})))) return true;
+      affected = Number(await deleteSchedulesByDateDB(date))||0;
+    }else{
+      showToast(t("toast.noDeleteMatch"));
+      return true;
+    }
+    await refreshByCurrentFilter();
+    renderAll();
+    showToast(affected>0 ? t("toast.deleted",{n:String(affected)}) : t("toast.noDeleteMatch"));
+  }catch(err){
+    showToast(`${t("deleteFail")}: ${String(err)}`);
+  }
+  return true;
+}
+
+async function tryUpdateByVoice(text){
+  let intent=null;
+  try{
+    intent = await parseUpdateIntentDB(text);
+  }catch(_){
+    return false;
+  }
+  if(!intent || intent.action!=="update") return false;
+
+  let target = null;
+  if(Number(intent.id)>0){
+    target = schedules.find((s)=>Number(s.id)===Number(intent.id)) || null;
+  }else{
+    target = schedules.find((s)=>{
+      const dateMatch = !intent.date || s.date===intent.date;
+      const titleMatch = !intent.title || String(s.title||"").includes(intent.title);
+      return dateMatch && titleMatch;
+    }) || null;
+  }
+  if(!target){
+    showToast(t("toast.noDeleteMatch"));
+    return true;
+  }
+
+  const newTitle = (intent.newTitle||target.title||"").trim();
+  const newStart = (intent.startTime||target.startTime||"").trim();
+  const newEnd = (intent.endTime??target.endTime??"").trim();
+  if(!newTitle){
+    showToast(t("editTitleRequired"));
+    return true;
+  }
+  if(newStart && !isValidHHMM(newStart)){
+    showToast(t("editInvalidTime"));
+    return true;
+  }
+  if(newEnd && !isValidHHMM(newEnd)){
+    showToast(t("editInvalidTime"));
+    return true;
+  }
+  if(newStart && newEnd && isEndBeforeStart(newStart,newEnd)){
+    showToast(isZh()?"结束时间不能早于开始时间":"End time cannot be earlier than start time");
+    return true;
+  }
+  try{
+    await updateScheduleByIDDB(Number(target.id), newTitle, newStart, newEnd);
+    await refreshByCurrentFilter();
+    renderAll();
+    showToast(t("toast.updated",{title:newTitle}));
+  }catch(err){
+    showToast(String(err));
+  }
+  return true;
+}
+
+async function tryControlByVoice(text){
+  let intent=null;
+  try{
+    intent = await parseControlIntentDB(text);
+  }catch(_){
+    return false;
+  }
+  if(!intent || intent.action!=="control") return false;
+
+  const cmd=String(intent.command||"").trim().toLowerCase();
+  if(!cmd) return false;
+  return runControlCommand(cmd);
+}
+
+function normalizeControlText(text){
+  return String(text||"")
+    .toLowerCase()
+    .replace(/[，。！？、,.!?]/g,"")
+    .replace(/\s+/g,"")
+    .trim();
+}
+
+async function runControlCommand(cmd){
+  switch(cmd){
+    case "view_all":
+      openAllSchedulesDialog();
+      showToast(t("controlViewAll"));
+      return true;
+    case "close_all":
+      closeAllSchedulesDialog();
+      showToast(t("controlCloseAll"));
+      return true;
+    case "view_todo":
+      openAllSchedulesDialog();
+      allDialogFilter="todo";
+      el.allTabs?.querySelectorAll(".sc-tab").forEach((x)=>x.classList.toggle("active",x.dataset.allFilter==="todo"));
+      renderAllSchedulesDialog();
+      showToast(t("controlViewTodo"));
+      return true;
+    case "view_done":
+      openAllSchedulesDialog();
+      allDialogFilter="done";
+      el.allTabs?.querySelectorAll(".sc-tab").forEach((x)=>x.classList.toggle("active",x.dataset.allFilter==="done"));
+      renderAllSchedulesDialog();
+      showToast(t("controlViewDone"));
+      return true;
+    case "view_today":
+      closeAllSchedulesDialog();
+      closeFavoritesDialog();
+      closeAddDialog();
+      closeEditDialog();
+      closeSheet();
+      selectedDate=new Date(today);
+      monthCursor=new Date(today.getFullYear(),today.getMonth(),1);
+      activeFilterDate=iso(today);
+      await fetchSchedulesByDate(activeFilterDate);
+      await refreshMarkedDatesForMonth(monthCursor);
+      renderAll();
+      showToast(t("controlViewToday"));
+      return true;
+    case "open_settings":
+      openSheet();
+      showToast(t("controlOpenSettings"));
+      return true;
+    case "close_settings":
+      closeSheet();
+      showToast(t("controlCloseSettings"));
+      return true;
+    case "open_important":
+      await openFavoritesDialog();
+      showToast(t("controlOpenImportant"));
+      return true;
+    case "close_important":
+      closeFavoritesDialog();
+      showToast(t("controlCloseImportant"));
+      return true;
+    case "theme_dark":
+      applyTheme("dark");
+      showToast(t("controlThemeDark"));
+      return true;
+    case "theme_light":
+      applyTheme("light");
+      showToast(t("controlThemeLight"));
+      return true;
+    case "go_home":
+      closeAllSchedulesDialog();
+      closeFavoritesDialog();
+      closeAddDialog();
+      closeEditDialog();
+      closeSheet();
+      activeFilterDate="";
+      await fetchAllSchedules();
+      await fetchAllSchedulesCache();
+      await refreshMarkedDatesForMonth(monthCursor);
+      renderAll();
+      showToast(t("controlGoHome"));
+      return true;
+    default:
+      return false;
+  }
+}
+
+async function tryControlByKeyword(text){
+  const s=normalizeControlText(text);
+  if(!s) return false;
+
+  const hasAny=(arr)=>arr.some((k)=>s.includes(k));
+  if(hasAny(["关闭全部日程","关闭所有日程","关闭全部安排","关闭日程列表"])){
+    return runControlCommand("close_all");
+  }
+  if(hasAny(["查看全部日程","全部日程","所有日程","全部安排"])){
+    return runControlCommand("view_all");
+  }
+  if(hasAny(["查看待完成日程","待完成日程","待办日程","待办事项","待完成"])){
+    return runControlCommand("view_todo");
+  }
+  if(hasAny(["查看已完成日程","已完成日程","完成日程","已完成"])){
+    return runControlCommand("view_done");
+  }
+  if(hasAny(["查看今天日程","今日日程","今天安排","今天有什么"])){
+    return runControlCommand("view_today");
+  }
+  if(hasAny(["打开设置","进入设置","设置面板","打开偏好设置"])){
+    return runControlCommand("open_settings");
+  }
+  if(hasAny(["关闭设置","退出设置","收起设置","关掉设置"])){
+    return runControlCommand("close_settings");
+  }
+  if(hasAny(["关闭重要日程","关闭重要安排","关闭重要事项"])){
+    return runControlCommand("close_important");
+  }
+  if(hasAny(["打开重要日程","查看重要日程","重要日程","重要安排"])){
+    return runControlCommand("open_important");
+  }
+  if(hasAny(["切换黑色模式","切换深色模式","深色模式","黑色模式","夜间模式"])){
+    return runControlCommand("theme_dark");
+  }
+  if(hasAny(["切换浅色模式","浅色模式","明亮模式"])){
+    return runControlCommand("theme_light");
+  }
+  if(hasAny(["回到主页","返回主页","回到首页","返回首页","回首页"])){
+    return runControlCommand("go_home");
+  }
+  return false;
+}
+
+async function processTextCommand(query){
+  const v=(query||"").trim();
+  if(!v) return;
+  const taskId=++textTaskId;
+  isVoiceProcessing=true;
+  setSendButtonMode("stop");
+  try{
+    const handledControlByKeyword = await tryControlByKeyword(v);
+    if(taskId!==textTaskId) return;
+    if(handledControlByKeyword) return;
+    const handledControl = await tryControlByVoice(v);
+    if(taskId!==textTaskId) return;
+    if(handledControl) return;
+    const handledDelete = await tryDeleteByVoice(v);
+    if(taskId!==textTaskId) return;
+    if(handledDelete) return;
+    const handledUpdate = await tryUpdateByVoice(v);
+    if(taskId!==textTaskId) return;
+    if(handledUpdate) return;
+    await parseAndAdd(v);
+    if(taskId!==textTaskId) return;
+  }catch(err){
+    showToast(String(err));
+  }finally{
+    if(taskId===textTaskId){
+      isVoiceProcessing=false;
+      setSendButtonMode("send");
+    }
+  }
+}
+
+async function recognize(blob,mime){
+  showToast(t("toast.transcribing"));
+  const taskId=++voiceTaskId;
+  isVoiceProcessing=true;
+  el.micBtn.classList.remove("rec");
+  setSendButtonMode("stop");
+  try{
+    const b64=await blobToBase64(blob);
+    if(taskId!==voiceTaskId){ return; }
+    let text="";
+    try{
+      text=await RecognizeSpeech(b64,mime,mimeToFormat(mime));
+    }catch(_){
+      text="";
+    }
+    if(taskId!==voiceTaskId){ return; }
+    // 优先使用后端识别文本；若后端空结果，回退使用录音过程中的实时听写文本
+    const query=(text&&text.trim()) ? text.trim() : (el.cmdInput.value||"").trim();
+    if(!query){ showToast(t("toast.noCatch")); return; }
+    el.cmdInput.value=query;
+
+    const handledControlByKeyword = await tryControlByKeyword(query);
+    if(taskId!==voiceTaskId){ return; }
+    if(handledControlByKeyword) return;
+    const handledControl = await tryControlByVoice(query);
+    if(taskId!==voiceTaskId){ return; }
+    if(handledControl) return;
+    const handledDelete = await tryDeleteByVoice(query);
+    if(taskId!==voiceTaskId){ return; }
+    if(handledDelete) return;
+    const handledUpdate = await tryUpdateByVoice(query);
+    if(taskId!==voiceTaskId){ return; }
+    if(handledUpdate) return;
+    await parseAndAdd(query);
+    if(taskId!==voiceTaskId){ return; }
+  }catch(err){showToast(String(err));}
+  finally{
+    if(taskId===voiceTaskId){
+      isVoiceProcessing=false;
+      el.micBtn.classList.remove("rec");
+      setSendButtonMode("send");
+    }
+  }
+}
+
+function cleanupStream(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}}
+function startLiveTranscript(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR) return;
+  liveFinalText="";
+  speechRec = new SR();
+  speechRec.continuous = true;
+  speechRec.interimResults = true;
+  speechRec.lang = isZh() ? "zh-CN" : "en-US";
+  liveTranscriptActive = true;
+
+  speechRec.onresult = (event)=>{
+    let interim = "";
+    for(let i=event.resultIndex; i<event.results.length; i++){
+      const seg = (event.results[i][0]?.transcript || "");
+      if(event.results[i].isFinal) liveFinalText += seg;
+      else interim += seg;
+    }
+    const mixed = `${liveFinalText}${interim}`.trim();
+    if(mixed) el.cmdInput.value = mixed;
+  };
+  speechRec.onerror = ()=>{};
+  speechRec.onend = ()=>{
+    if(liveTranscriptActive && isRecording){
+      try{ speechRec.start(); }catch(_){}
+    }
+  };
+  try{ speechRec.start(); }catch(_){}
+}
+function stopLiveTranscript(){
+  liveTranscriptActive = false;
+  if(speechRec){
+    try{ speechRec.stop(); }catch(_){}
+  }
+  speechRec = null;
+}
+async function startRecording(){
+  if(isRecording)return;pendingStop=false;
+  if(!navigator.mediaDevices||typeof MediaRecorder==="undefined"){showToast(t("toast.unsupported"));return;}
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    startLiveTranscript();
+    chunks=[];recorder=new MediaRecorder(stream);
+    recorder.addEventListener("dataavailable",(ev)=>{if(ev.data.size>0)chunks.push(ev.data);});
+    recorder.addEventListener("stop",async()=>{
+      const mime=recorder.mimeType||"audio/webm";
+      const blob=new Blob(chunks,{type:mime});
+      stopLiveTranscript();
+      cleanupStream();isRecording=false;pendingStop=false;recorder=null;el.micBtn.classList.remove("rec");
+      if(!blob.size){showToast(t("toast.empty"));return;}
+      await recognize(blob,mime);
+    });
+    recorder.start();isRecording=true;el.micBtn.classList.add("rec");showToast(t("toast.listening"));
+    if(pendingStop)stopRecording();
+  }catch(err){stopLiveTranscript();cleanupStream();isRecording=false;recorder=null;el.micBtn.classList.remove("rec");showToast(String(err));}
+}
+function stopRecording(){if(!isRecording||!recorder){pendingStop=true;return;}if(recorder.state!=="inactive")recorder.stop();}
+function cancelVoiceProcessing(){
+  if(isRecording){
+    stopLiveTranscript();
+    stopRecording();
+    showToast(isZh()?"已停止录音":"Recording stopped");
+    return;
+  }
+  if(isVoiceProcessing){
+    voiceTaskId++;
+    textTaskId++;
+    isVoiceProcessing=false;
+    el.micBtn.classList.remove("rec");
+    setSendButtonMode("send");
+    showToast(isZh()?"已中断处理":"Processing cancelled");
+  }
+}
+
+/* ---- settings ---- */
+function openSheet(){el.mask.classList.add("open");el.sheet.classList.add("open");el.sheet.setAttribute("aria-hidden","false");}
+function closeSheet(){el.mask.classList.remove("open");el.sheet.classList.remove("open");el.sheet.setAttribute("aria-hidden","true");}
+async function saveKey(){
+  const key=el.apiKey.value.trim();
+  if(!key){showToast(t("toast.keyRequired"));return;}
+  try{await SaveApiKey(key);showToast(t("toast.saved"));closeSheet();}
+  catch(err){showToast(String(err));}
+}
+
+async function sendTestNotification(){
+  if(!el.notificationTest)return;
+  el.notificationTest.disabled=true;
+  try{
+    await invokeBackend("SendTestNotification");
+    showToast(t("toast.notificationSent"));
+  }catch(err){
+    showToast(`${t("toast.notificationFailed")}: ${String(err)}`);
+  }finally{
+    el.notificationTest.disabled=false;
+  }
+}
+
+function bind(){
+  if(el.statusSeg){
+    el.statusSeg.addEventListener("click",(ev)=>{
+      const b=ev.target.closest(".status-btn");
+      if(!b) return;
+      statusFilter=b.dataset.statusFilter||"all";
+      el.statusSeg.querySelectorAll(".status-btn").forEach((x)=>x.classList.toggle("active",x===b));
+      renderAll();
+    });
+  }
+  el.calGrid.addEventListener("click",(ev)=>{
+    const b=ev.target.closest(".cell");if(!b)return;
+    selectedDate=parseISO(b.dataset.date);
+    monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
+    activeFilterDate=b.dataset.date||"";
+    fetchSchedulesByDate(activeFilterDate).then(()=>refreshMarkedDatesForMonth(monthCursor)).then(renderAll).catch((err)=>showToast(String(err)));
+  });
+  el.miniGrid.addEventListener("click",(ev)=>{
+    const b=ev.target.closest(".mini-cell");if(!b)return;
+    selectedDate=parseISO(b.dataset.date);
+    monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
+    activeFilterDate=b.dataset.date||"";
+    fetchSchedulesByDate(activeFilterDate).then(()=>refreshMarkedDatesForMonth(monthCursor)).then(renderAll).catch((err)=>showToast(String(err)));
+  });
+  el.upList.addEventListener("click",(ev)=>{
+    const b=ev.target.closest(".up-item");if(!b)return;
+    selectedDate=parseISO(b.dataset.date);
+    monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
+    refreshMarkedDatesForMonth(monthCursor).then(()=>renderAll());
+  });
+  el.insightJump?.addEventListener("click",()=>jumpToConflictSchedules(lastConflictKeys));
+  $("mini-prev").addEventListener("click",async ()=>{monthCursor.setMonth(monthCursor.getMonth()-1);await refreshMarkedDatesForMonth(monthCursor);renderMain();renderMini();});
+  $("mini-next").addEventListener("click",async ()=>{monthCursor.setMonth(monthCursor.getMonth()+1);await refreshMarkedDatesForMonth(monthCursor);renderMain();renderMini();});
+
+  el.micBtn.addEventListener("click",()=>{
+    if(isRecording || isVoiceProcessing){ cancelVoiceProcessing(); return; }
+    startRecording();
+  });
+  el.addBtn.addEventListener("click",()=>{
+    if(isVoiceProcessing){ cancelVoiceProcessing(); return; }
+    const v=el.cmdInput.value.trim();
+    if(!v) return;
+    processTextCommand(v);
+  });
+  el.cmdInput.addEventListener("keydown",(ev)=>{
+    if(ev.key!=="Enter") return;
+    const v = el.cmdInput.value.trim();
+    if(!v) return;
+    processTextCommand(v);
+  });
+
+  el.navSettings.addEventListener("click",openSheet);
+  el.sheetClose.addEventListener("click",closeSheet);
+  el.mask.addEventListener("click",closeSheet);
+  el.btnSave.addEventListener("click",saveKey);
+  el.notificationTest?.addEventListener("click",sendTestNotification);
+  el.viewAll.addEventListener("click",(ev)=>{ev.preventDefault();openAllSchedulesDialog();});
+  el.allClose.addEventListener("click",closeAllSchedulesDialog);
+  el.allMask.addEventListener("click",(ev)=>{ if(ev.target===el.allMask) closeAllSchedulesDialog(); });
+  el.favClose.addEventListener("click",closeFavoritesDialog);
+  el.favMask.addEventListener("click",(ev)=>{ if(ev.target===el.favMask) closeFavoritesDialog(); });
+  el.favPillTotal.addEventListener("click",()=>{favFilter="all";el.favPillTotal.classList.add("active");el.favPillWeek.classList.remove("active");el.favPillMonth.classList.remove("active");openFavoritesDialog(true).catch((err)=>showToast(String(err)));});
+  el.favPillWeek.addEventListener("click",()=>{favFilter="week";el.favPillWeek.classList.add("active");el.favPillTotal.classList.remove("active");el.favPillMonth.classList.remove("active");openFavoritesDialog(true).catch((err)=>showToast(String(err)));});
+  el.favPillMonth.addEventListener("click",()=>{favFilter="month";el.favPillMonth.classList.add("active");el.favPillTotal.classList.remove("active");el.favPillWeek.classList.remove("active");openFavoritesDialog(true).catch((err)=>showToast(String(err)));});
+  if(el.allTabs){
+    el.allTabs.addEventListener("click",(ev)=>{
+      const b=ev.target.closest(".sc-tab");
+      if(!b) return;
+      allDialogFilter=b.dataset.allFilter||"all";
+      el.allTabs.querySelectorAll(".sc-tab").forEach((x)=>x.classList.toggle("active",x===b));
+      renderAllSchedulesDialog();
+    });
+  }
+  if(el.allSearch){
+    el.allSearch.addEventListener("input",()=>{
+      allDialogQuery=el.allSearch.value||"";
+      renderAllSchedulesDialog();
+    });
+  }
+  el.allExportBtn.addEventListener("click",async ()=>{
+    try{
+      const rows=applyAllDialogFilter(allSortedSchedules(allDialogSchedules));
+      if(!rows.length){ showToast(t("allSchedulesEmpty")); return; }
+      const payload=rows.map((it)=>{
+        const k=allItemKind(it);
+        const status = k==="done" ? t("allStatusDone") : (k==="ongoing" ? t("allStatusOngoing") : t("allStatusTodo"));
+        return {
+          date: it.date || "",
+          startTime: it.startTime || "",
+          endTime: it.endTime || "",
+          title: it.title || "",
+          status,
+        };
+      });
+      const savedPath=await exportSchedulesCSVDB(payload);
+      showToast(t("exportSuccess",{path:savedPath||""}));
+    }catch(err){
+      const msg=String(err||"");
+      if(msg.includes("已取消导出")){ showToast(t("exportCanceled")); return; }
+      showToast(t("exportFail"));
+    }
+  });
+  el.confirmCancel.addEventListener("click",()=>closeConfirmDialog(false));
+  el.confirmOk.addEventListener("click",()=>closeConfirmDialog(true));
+  el.confirmMask.addEventListener("click",(ev)=>{ if(ev.target===el.confirmMask) closeConfirmDialog(false); });
+  el.editClose.addEventListener("click",closeEditDialog);
+  el.editCancel.addEventListener("click",closeEditDialog);
+  el.editMask.addEventListener("click",(ev)=>{ if(ev.target===el.editMask) closeEditDialog(); });
+  el.editDatePill.addEventListener("click",(ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(datePickerOpen && datePickerAnchor===el.editDatePill){
+      closeDatePicker();
+      return;
+    }
+    openDatePicker(el.editDatePill, el.editDateInput, el.editDateText);
+  });
+  el.editDateInput.addEventListener("change",()=>{
+    if(!el.editDateInput.value) return;
+    const d = parseISO(el.editDateInput.value);
+    el.editDateText.textContent=fmtPillDate(d);
+  });
+  el.editStartBtn.addEventListener("click",(ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(timePickerOpen && timePickerAnchor===el.editStartBtn){
+      closeTimePicker();
+      return;
+    }
+    openTimePicker(el.editStartBtn,el.editStartInput,el.editStartBtn,false);
+  });
+  el.editEndBtn.addEventListener("click",(ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(timePickerOpen && timePickerAnchor===el.editEndBtn){
+      closeTimePicker();
+      return;
+    }
+    openTimePicker(el.editEndBtn,el.editEndInput,el.editEndBtn,true);
+  });
+  el.editSave.addEventListener("click", async ()=>{
+    if(!editingScheduleId) return;
+    const title = (el.editTitleInput.value||"").trim();
+    const startTime = (el.editStartInput.value||"").trim();
+    const endTime = (el.editEndInput.value||"").trim();
+    const desc = clampNote((el.editDescInput.value||"").trim());
+    if(!title){ showToast(t("editTitleRequired")); return; }
+    if(startTime && !isValidHHMM(startTime)){ showToast(t("editInvalidTime")); return; }
+    if(endTime && !isValidHHMM(endTime)){ showToast(t("editInvalidTime")); return; }
+    if(startTime && endTime && isEndBeforeStart(startTime,endTime)){
+      showToast(isZh()?"结束时间不能早于开始时间":"End time cannot be earlier than start time");
+      return;
+    }
+    try{
+      await updateScheduleByIDWithDescDB(editingScheduleId, title, startTime, endTime, desc);
+      closeEditDialog();
+      await refreshByCurrentFilter();
+      renderAll();
+      showToast(t("toast.updated",{title}));
+    }catch(err){
+      showToast(String(err));
+    }
+  });
+  el.addClose.addEventListener("click",closeAddDialog);
+  el.addCancel.addEventListener("click",closeAddDialog);
+  el.addMask.addEventListener("click",(ev)=>{ if(ev.target===el.addMask) closeAddDialog(); });
+  el.addDatePill.addEventListener("click",(ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(datePickerOpen && datePickerAnchor===el.addDatePill){
+      closeDatePicker();
+      return;
+    }
+    openDatePicker(el.addDatePill, el.addDateInput, el.addDateText);
+  });
+  el.addDateInput.addEventListener("change",()=>{
+    if(!el.addDateInput.value) return;
+    el.addDateText.textContent=fmtPillDate(parseISO(el.addDateInput.value));
+  });
+  el.addStartBtn.addEventListener("click",(ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(timePickerOpen && timePickerAnchor===el.addStartBtn){
+      closeTimePicker();
+      return;
+    }
+    openTimePicker(el.addStartBtn,el.addStartInput,el.addStartBtn,false);
+  });
+  el.addEndBtn.addEventListener("click",(ev)=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(timePickerOpen && timePickerAnchor===el.addEndBtn){
+      closeTimePicker();
+      return;
+    }
+    openTimePicker(el.addEndBtn,el.addEndInput,el.addEndBtn,true);
+  });
+  el.dpPrev.addEventListener("click",(ev)=>{
+    ev.preventDefault();
+    dateCursor.setMonth(dateCursor.getMonth()-1);
+    renderDatePicker();
+  });
+  el.dpNext.addEventListener("click",(ev)=>{
+    ev.preventDefault();
+    dateCursor.setMonth(dateCursor.getMonth()+1);
+    renderDatePicker();
+  });
+  el.dpGrid.addEventListener("click",(ev)=>{
+    const btn=ev.target.closest(".dp-day[data-date]");
+    if(!btn || !datePickerTargetInput) return;
+    const picked=btn.dataset.date;
+    datePickerTargetInput.value=picked;
+    if(datePickerTargetText) datePickerTargetText.textContent=fmtPillDate(parseISO(picked));
+    datePickerTargetInput.dispatchEvent(new Event("change"));
+    closeDatePicker();
+  });
+  el.dpToday.addEventListener("click",(ev)=>{
+    ev.preventDefault();
+    if(!datePickerTargetInput) return;
+    const picked=iso(today);
+    datePickerTargetInput.value=picked;
+    if(datePickerTargetText) datePickerTargetText.textContent=fmtPillDate(today);
+    datePickerTargetInput.dispatchEvent(new Event("change"));
+    closeDatePicker();
+  });
+  el.dpClear.addEventListener("click",(ev)=>{
+    ev.preventDefault();
+    if(!datePickerTargetInput) return;
+    datePickerTargetInput.value="";
+    if(datePickerTargetText){
+      const ref=selectedDate||today;
+      datePickerTargetText.textContent=fmtPillDate(ref);
+    }
+    closeDatePicker();
+  });
+  if(el.tpHourCol){
+    let hourScrollTimer=null;
+    el.tpHourCol.addEventListener("scroll",()=>{
+      clearTimeout(hourScrollTimer);
+      hourScrollTimer=setTimeout(()=>{
+        timePickerHour=snapPickerCol(el.tpHourCol,"hour");
+        enforceTimePickerMinForEnd();
+        refreshTimePickerActive();
+      },90);
+    });
+  }
+  if(el.tpMinuteCol){
+    let minuteScrollTimer=null;
+    el.tpMinuteCol.addEventListener("scroll",()=>{
+      clearTimeout(minuteScrollTimer);
+      minuteScrollTimer=setTimeout(()=>{
+        timePickerMinute=snapPickerCol(el.tpMinuteCol,"minute");
+        enforceTimePickerMinForEnd();
+        refreshTimePickerActive();
+      },90);
+    });
+  }
+  if(el.tpClose) el.tpClose.addEventListener("click",closeTimePicker);
+  if(el.tpCancel) el.tpCancel.addEventListener("click",closeTimePicker);
+  if(el.tpDone) el.tpDone.addEventListener("click",commitTimePicker);
+
+  window.addEventListener("resize",()=>{
+    if(datePickerOpen) positionDatePicker();
+    if(timePickerOpen) positionTimePicker();
+  });
+  document.addEventListener("scroll",()=>{
+    if(datePickerOpen) positionDatePicker();
+    if(timePickerOpen) positionTimePicker();
+  },true);
+  document.addEventListener("click",(ev)=>{
+    if(!datePickerOpen) return;
+    if(el.dpPop.contains(ev.target)) return;
+    if(datePickerAnchor && datePickerAnchor.contains(ev.target)) return;
+    closeDatePicker();
+  });
+  document.addEventListener("click",(ev)=>{
+    if(!timePickerOpen) return;
+    if(el.timePickerPop.contains(ev.target)) return;
+    if(timePickerAnchor && timePickerAnchor.contains(ev.target)) return;
+    closeTimePicker();
+  });
+  el.addNoteToggle.addEventListener("click",()=>{
+    const expanded = el.addNotesCard.classList.toggle("expanded");
+    if(expanded){
+      requestAnimationFrame(()=>el.addDescInput?.focus());
+    }
+  });
+  el.editNoteToggle.addEventListener("click",()=>{
+    const expanded = el.editNotesCard.classList.toggle("expanded");
+    if(expanded){
+      requestAnimationFrame(()=>el.editDescInput?.focus());
+    }
+  });
+  el.addDescInput.addEventListener("input",()=>updateNoteCount(el.addDescInput,el.addNoteCount));
+  el.editDescInput.addEventListener("input",()=>updateNoteCount(el.editDescInput,el.editNoteCount));
+  el.addSave.addEventListener("click", async ()=>{
+    const date = (el.addDateInput.value||"").trim();
+    const title = (el.addTitleInput.value||"").trim();
+    const startTime = (el.addStartInput.value||"").trim();
+    const endTime = (el.addEndInput.value||"").trim();
+    const desc = clampNote((el.addDescInput.value||"").trim());
+    if(!date){ showToast(t("addDateRequired")); return; }
+    if(!title){ showToast(t("editTitleRequired")); return; }
+    if(startTime && !isValidHHMM(startTime)){ showToast(t("editInvalidTime")); return; }
+    if(endTime && !isValidHHMM(endTime)){ showToast(t("editInvalidTime")); return; }
+    if(startTime && endTime && isEndBeforeStart(startTime,endTime)){
+      showToast(isZh()?"结束时间不能早于开始时间":"End time cannot be earlier than start time");
+      return;
+    }
+    try{
+      await createScheduleDB({title,date,startTime,endTime,duration:0,desc:desc||title});
+      closeAddDialog();
+      await refreshByCurrentFilter();
+      selectedDate=parseISO(date);
+      monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);
+      renderAll();
+      showToast(t("addSuccess",{title}));
+    }catch(err){
+      showToast(String(err));
+    }
+  });
+  document.addEventListener("click",(ev)=>{
+    const btn=ev.target.closest("#quick-add");
+    if(btn){ ev.preventDefault(); openAddDialog(); }
+  });
+
+  el.themeToggle.addEventListener("click",()=>{
+    const next=document.documentElement.dataset.theme==="dark"?"light":"dark";
+    applyTheme(next);
+  });
+  el.themeSeg.addEventListener("click",(ev)=>{
+    const b=ev.target.closest("button");if(!b)return;
+    applyTheme(b.dataset.themeOpt);
+  });
+  el.langSeg.addEventListener("click",(ev)=>{
+    const b=ev.target.closest("button");if(!b)return;
+    setLang(b.dataset.lang);
+  });
+
+  document.addEventListener("keydown",(ev)=>{
+    if(ev.key && ev.key.toLowerCase()==="t" && !ev.ctrlKey && !ev.metaKey && !ev.altKey){
+      const tag = document.activeElement?.tagName?.toLowerCase?.() || "";
+      const isTyping = tag==="input" || tag==="textarea" || document.activeElement?.isContentEditable;
+      if(!isTyping){
+        ev.preventDefault();
+        if(isRecording || isVoiceProcessing){ cancelVoiceProcessing(); return; }
+        startRecording();
+        return;
+      }
+    }
+    if(ev.key==="Escape" && el.addMask.classList.contains("open")){
+      if(timePickerOpen){ closeTimePicker(); return; }
+      if(datePickerOpen){ closeDatePicker(); return; }
+      closeAddDialog();
+      return;
+    }
+    if(ev.key==="Escape" && el.editMask.classList.contains("open")){
+      if(timePickerOpen){ closeTimePicker(); return; }
+      closeEditDialog();
+      return;
+    }
+    if(ev.key==="Escape" && el.confirmMask.classList.contains("open")){
+      closeConfirmDialog(false);
+      return;
+    }
+    if(ev.key==="Escape" && allDialogOpen){
+      closeAllSchedulesDialog();
+      return;
+    }
+    if(ev.key==="Escape" && favDialogOpen){
+      closeFavoritesDialog();
+      return;
+    }
+    if(document.activeElement===el.cmdInput)return;
+    if(ev.key==="ArrowLeft"){selectedDate.setDate(selectedDate.getDate()-1);monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);refreshMarkedDatesForMonth(monthCursor).then(()=>renderAll());}
+    if(ev.key==="ArrowRight"){selectedDate.setDate(selectedDate.getDate()+1);monthCursor=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),1);refreshMarkedDatesForMonth(monthCursor).then(()=>renderAll());}
+  });
+
+  // sidebar nav (visual)
+  document.querySelectorAll(".nav-btn[data-nav]").forEach(b=>{
+    b.addEventListener("click",()=>{
+      if(b.dataset.nav==="settings"){openSheet();return;}
+      if(b.dataset.nav==="favorites"){openFavoritesDialog().catch((err)=>showToast(String(err)));return;}
+      if(b.dataset.nav==="tasks"){openAllSchedulesDialog();return;}
+      document.querySelectorAll(".nav-btn[data-nav]").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+    });
+  });
+}
+
+async function bootstrap(){
+  buildWave();
+  applyTheme(localStorage.getItem("voiceflow.theme")==="dark"?"dark":"light");
+  setSendButtonMode("send");
+  bind();
+  try{const key=await LoadApiKey();if(key)el.apiKey.value=key;}catch(_){}
+  try{
+    await fetchAllSchedules();
+    await fetchAllSchedulesCache();
+    await refreshMarkedDatesForMonth(monthCursor);
+  }catch(err){
+    showToast(String(err));
+  }
+  applyI18n();
+  setInterval(()=>{
+    const current=new Date();current.setHours(0,0,0,0);
+    if(current.getTime()!==today.getTime()) today=current;
+    renderAll();
+  }, 60000);
+}
+bootstrap();

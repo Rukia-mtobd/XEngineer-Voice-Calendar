@@ -42,6 +42,8 @@ export function RecognizeSpeech(arg1:string,arg2:string,arg3:string):Promise<str
 
 export function SaveApiKey(arg1:string):Promise<void>;
 
+export function SendTestNotification():Promise<void>;
+
 export function SetScheduleImportant(arg1:number,arg2:boolean):Promise<storage.ScheduleRecord>;
 
 export function UpdateScheduleByID(arg1:number,arg2:string,arg3:string,arg4:string):Promise<storage.ScheduleRecord>;
